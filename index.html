@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tuan Truong</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐟</text></svg>">
+  <meta name="description" content="Tuan M. Truong is a Computer Science PhD student at the National University of Singapore, supervised by Prof. Shuicheng Yan.">
+  <meta property="og:title" content="Tuan M. Truong — PhD Student, NUS">
+  <meta property="og:description" content="CS PhD student at NUS working on parameter-efficient fine-tuning.">
+  <meta property="og:type" content="website">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Tuan M. Truong",
+    "jobTitle": "PhD Student in Computer Science",
+    "affiliation": { "@type": "Organization", "name": "National University of Singapore" },
+    "alumniOf": { "@type": "Organization", "name": "University of British Columbia" }
+  }
+  </script>
+  <style>
+    /* ============ Theme variables ============ */
+    :root {
+      /* White & blue theme */
+      --bg: #ffffff;
+      --bg-alt: #eef3fc;
+      --text: #14264f;         /* navy blue body text */
+      --text-muted: #5a6b8c;   /* muted blue-grey */
+      --accent: #1d4ed8;       /* blue links / headings accents */
+      --accent-soft: #1d4ed81a;
+      --border: #d7e1f3;
+      --shadow: 0 2px 12px rgba(29, 78, 216, 0.08);
+    }
+    [data-theme="dark"] {
+      --bg: #0f1830;
+      --bg-alt: #172444;
+      --text: #dfe8fb;
+      --text-muted: #93a4c8;
+      --accent: #6aa0ff;
+      --accent-soft: #6aa0ff22;
+      --border: #26355c;
+      --shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; scroll-padding-top: 4.5rem; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--bg);
+      transition: background 0.25s, color 0.25s;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ============ Nav ============ */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0.7rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-brand { font-weight: 700; color: var(--text); }
+    .nav-brand:hover { text-decoration: none; color: var(--accent); }
+    .nav-links { display: flex; align-items: center; gap: 1.1rem; }
+    .nav-links a { color: var(--text-muted); font-size: 0.95rem; }
+    .nav-links a:hover, .nav-links a.active { color: var(--accent); text-decoration: none; }
+    .theme-toggle {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 0.15rem 0.35rem;
+      border-radius: 6px;
+    }
+    .theme-toggle:hover { color: var(--accent); background: var(--accent-soft); }
+
+    /* ============ Layout ============ */
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+
+    section { margin-top: 3rem; }
+
+    h1 { font-size: 1.9rem; margin: 0 0 0.25rem; }
+    h2 {
+      font-size: 1.3rem;
+      border-bottom: 2px solid var(--accent-soft);
+      padding-bottom: 0.35rem;
+      margin-bottom: 1rem;
+    }
+
+    .muted { color: var(--text-muted); font-size: 0.92rem; }
+
+    /* ============ Hero ============ */
+    .hero {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+    }
+    .hero-text { flex: 1; min-width: 0; }
+    .tagline { color: var(--text-muted); margin-top: 0; font-size: 1.02rem; }
+    .hero-text > p:not(.tagline):not(.contact-line) { text-align: justify; }
+    .hero-mark { flex-shrink: 0; margin: 0; width: 210px; text-align: center; }
+    .hero-mark svg { width: 100%; height: auto; overflow: visible; display: block; cursor: pointer; }
+    .hero-mark #loop, .hero-mark #fig-lines { stroke: var(--text); }
+    .hero-mark #fig-head { fill: var(--text); }
+    .hero-mark #rock circle { fill: var(--accent); }
+    .mark-caption {
+      margin-top: 0.75rem;
+      font-size: 0.75rem;
+      font-style: italic;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+    .mark-hint {
+      margin: 0.25rem 0 0;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      opacity: 0.8;
+    }
+
+    /* ============ Intro quote ============ */
+    .intro-quote {
+      max-width: 34rem;
+      margin: 2.75rem 0 0;
+      text-align: left;
+      border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+      border-radius: 0;
+      padding-left: 1.1rem;
+      font-style: italic;
+      font-size: 1.02rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+    .intro-quote cite {
+      display: block;
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      font-style: normal;
+    }
+    .contact-line { margin-top: 1.2rem; font-weight: 500; }
+
+    /* ============ Publications ============ */
+    .pub-list { padding-left: 1.25rem; }
+    .pub-list li { margin-bottom: 1rem; }
+    .pub-title { font-weight: 600; }
+    .pub-authors { font-size: 0.94rem; }
+    .pub-venue { font-size: 0.9rem; color: var(--text-muted); }
+    .pub-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-radius: 5px;
+      padding: 0.05rem 0.45rem;
+      margin-right: 0.4rem;
+      vertical-align: 1px;
+    }
+    .pub-links a { font-size: 0.85rem; margin-right: 0.6rem; }
+    .pub-year-heading {
+      font-size: 1.15rem;
+      margin: 2rem 0 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* ============ CV lists (experience / education) ============ */
+    .cv-list { list-style: none; padding: 0; }
+    .cv-list li { margin-bottom: 1.25rem; }
+    .cv-head { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .cv-date { color: var(--text-muted); font-size: 0.88rem; white-space: nowrap; }
+    .cv-sub { font-size: 0.94rem; }
+    .cv-desc { font-size: 0.92rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+    .honor-list { list-style: none; padding: 0; }
+    .honor-list li {
+      padding: 0.3rem 0;
+      border-bottom: 1px dashed var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    /* ============ Footer ============ */
+    .footer {
+      margin-top: 4rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+
+    /* ============ Responsive ============ */
+    @media (max-width: 640px) {
+      .hero { flex-direction: column-reverse; align-items: center; text-align: left; }
+      .hero-mark { margin-bottom: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#top" class="nav-brand">Tuan M. Truong</a>
+      <div class="nav-links">
+        <a href="#publications">Publications</a>
+        <a href="#experience">Experience</a>
+        <a href="#honors">Honors</a>
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">◐</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <!-- ===================== About / Hero ===================== -->
+    <header class="hero" id="top">
+      <div class="hero-text">
+        <h1>Tuan M. Truong</h1>
+        <p class="tagline">PhD Student · School of Computing, National University of Singapore</p>
+        <p>
+          Hi! I'm Tuan, you can call me Tuna 🐟. I am a PhD student at the <a href="https://www.nus.edu.sg/" target="_blank" rel="noopener">National University of Singapore (NUS)</a>,
+          supervised by <a href="https://yanshuicheng.info/" target="_blank" rel="noopener">Professor Shuicheng Yan</a>.
+        </p>
+        <p>
+          Previously, I earned a Combined Honours degree in Mathematics and Computer Science at the
+          <a href="https://www.ubc.ca/" target="_blank" rel="noopener">University of British Columbia</a>, where I also worked as a Research Assistant under
+          <a href="https://www.cs.ubc.ca/~kevinlb/" target="_blank" rel="noopener">Prof. Kevin Leyton-Brown</a>. Besides, I was also an AI Research Resident at
+          <a href="https://www.qualcomm.com/research/artificial-intelligence" target="_blank" rel="noopener">Qualcomm AI Research</a>, advised by
+          <a href="https://www.trungle.org/" target="_blank" rel="noopener">Prof. Trung Le</a> (Monash University) and
+          <a href="https://nhatptnk8912.github.io/" target="_blank" rel="noopener">Prof. Nhat Ho</a> (UT Austin).
+        </p>
+        <p class="contact-line">
+          <a href="mailto:tuantm04@u.nus.edu">Email</a> ·
+          <a href="https://scholar.google.com/citations?user=VdogIPUAAAAJ&amp;hl=en" target="_blank" rel="noopener">Google Scholar</a> ·
+          <a href="files/Tuan_Truong_CV.pdf" target="_blank" rel="noopener">CV</a>
+          <!-- Hidden for now per Tuan's request — restore when ready:
+          <a href="#" target="_blank" rel="noopener">LinkedIn</a> ·
+          <a href="https://github.com/tuantruongubc" target="_blank" rel="noopener">GitHub</a>
+          -->
+        </p>
+      </div>
+      <figure class="hero-mark">
+        <svg id="sisyphus" viewBox="-134 -60 240 120" role="img" aria-label="A minimalist figure endlessly pushing a blue rock along an infinite loop">
+          <path id="loop" d="M0 0 L27.43 -23 A30 30 0 1 1 27.43 23 L0 0 L-45.67 -38.3 A50 50 0 1 0 -45.67 38.3 Z"
+                fill="none" stroke="#1C1B19" stroke-width="1.5" stroke-linejoin="round"/>
+          <g id="rock"><circle cx="0" cy="12" r="12" fill="#2B5FA8"/></g>
+          <g id="figure">
+            <path id="fig-lines" d="M0 6.4 L-6 0 M0 6.4 L2.99 2.56 L2.6 0 M0 6.4 L2.155 11.022 L8.064 12.064 M2.155 11.022 L4.666 10.349"
+                  fill="none" stroke="#1C1B19" stroke-width="0.72" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle id="fig-head" cx="4.666" cy="10.349" r="1.2" fill="#1C1B19"/>
+          </g>
+        </svg>
+        <figcaption class="mark-caption">Not a Tuna, a minimalist Sisyphus absurdly rolling in an infinite loop.</figcaption>
+        <p class="mark-hint" id="mark-hint">(click to make him move)</p>
+      </figure>
+    </header>
+
+    <!-- ===================== Intro quote ===================== -->
+    <blockquote class="intro-quote">
+      “In the depth of winter, I finally learned that within me there lay an invincible summer.”
+      <cite>Albert Camus</cite>
+    </blockquote>
+
+    <!-- ===================== Publications ===================== -->
+    <section id="publications">
+      <h2>Publications</h2>
+      <p class="muted">(*) denotes equal contribution.</p>
+      <div id="all-pubs"></div>
+    </section>
+
+    <!-- ===================== Experience ===================== -->
+    <section id="experience">
+      <h2>Experience</h2>
+      <ul class="cv-list">
+        <li>
+          <div class="cv-head"><strong>National University of Singapore</strong><span class="cv-date">Aug 2026 – Present</span></div>
+          <div class="cv-sub">PhD Student, School of Computing · Advisor: Prof. Shuicheng Yan</div>
+        </li>
+        <li>
+          <div class="cv-head"><strong>Center for AI Research, VinUniversity</strong><span class="cv-date">Dec 2025 – Jun 2026</span></div>
+          <div class="cv-sub">AI Research Resident · Hanoi, Vietnam · Supervisor: Duy Nguyen (PhD Candidate, Max Planck Research School for Intelligent Systems &amp; DFKI)</div>
+          <div class="cv-desc">Data-efficient vision-language-action (VLA) models for robot manipulation.</div>
+        </li>
+        <li>
+          <div class="cv-head"><strong>VinAI Research (now Qualcomm AI Research)</strong><span class="cv-date">Feb 2023 – Jul 2025</span></div>
+          <div class="cv-sub">Research Resident · Supervisors: Prof. Trung Le (Monash), Prof. Nhat Ho (UT Austin)</div>
+          <div class="cv-desc">Robust and data-efficient PEFT techniques for large foundation models — four papers at ICML 2025 (3) and NeurIPS 2024 (1).</div>
+        </li>
+        <li>
+          <div class="cv-head"><strong>University of British Columbia</strong><span class="cv-date">Apr 2022 – Apr 2023</span></div>
+          <div class="cv-sub">Research Assistant with Prof. Kevin Leyton-Brown; TA for CPSC 340 (Machine Learning &amp; Data Mining)</div>
+          <div class="cv-desc">Boolean satisfiability solvers via reinforcement learning — co-authored "UNSAT Solver Synthesis via Monte Carlo Forest Search" (CPAIOR 2024).</div>
+        </li>
+        <li>
+          <div class="cv-head"><strong>FPT Software AI Center</strong><span class="cv-date">May 2021 – Mar 2022</span></div>
+          <div class="cv-sub">Research Resident · Supervisor: Prof. Hung Tran-The</div>
+          <div class="cv-desc">Contextual bandits and offline RL — co-authored "Expected Improvement for Contextual Bandits" (NeurIPS 2022).</div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ===================== Education ===================== -->
+    <section id="education">
+      <h2>Education</h2>
+      <ul class="cv-list">
+        <li>
+          <div class="cv-head"><strong>National University of Singapore</strong><span class="cv-date">Aug 2026 – Present</span></div>
+          <div class="cv-sub">PhD, School of Computing · Advisor: Prof. Shuicheng Yan</div>
+        </li>
+        <li>
+          <div class="cv-head"><strong>University of British Columbia</strong><span class="cv-date">Sept 2020 – May 2024</span></div>
+          <div class="cv-sub">BSc, Combined Honours in Mathematics and Computer Science · GPA 87.32% (A)</div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ===================== Honors ===================== -->
+    <section id="honors">
+      <h2>Honors &amp; Awards</h2>
+      <ul class="honor-list">
+        <li><span><strong>Bronze Medal</strong>, 59th International Mathematical Olympiad (IMO)</span> <span class="cv-date">2018</span></li>
+        <li><span><strong>Second Prize</strong>, Vietnamese Mathematical Olympiad (VMO)</span> <span class="cv-date">2018</span></li>
+        <li><span><strong>Third Prize</strong>, Vietnamese Mathematical Olympiad (VMO)</span> <span class="cv-date">2017</span></li>
+        <li><span>UBC Trek Excellence Scholarship for Continuing Students</span> <span class="cv-date">2023</span></li>
+        <li><span>UBC Computer Science Scholarship</span> <span class="cv-date">2023</span></li>
+        <li><span>UBC Faculty of Science International Student Scholarship</span> <span class="cv-date">2022, 2023</span></li>
+        <li><span>First Runner-up, DENSO Factory Hacks Hackathon Challenge</span> <span class="cv-date">2023</span></li>
+      </ul>
+    </section>
+
+    <!-- ===================== Services ===================== -->
+    <section id="services">
+      <h2>Professional Services</h2>
+      <p>Reviewer: ICML (2024–2026), ICLR (2024–2026), CVPR (2024–2025), NeurIPS (2026).</p>
+    </section>
+
+    <footer class="footer">
+      <p>© 2026 Tuan M. Truong</p>
+    </footer>
+  </main>
+
+  <script>
+    // ============ Publication data ============
+    const PUBLICATIONS = [
+      { year: 2026, title: "Hypernetwork-Driven Low-Rank Adaptation Across Attention Heads",
+        authors: "T. Truong*, N. T. Diep*, L. Q. Dung*, T. Dinh, H. Nguyen, N. Ho",
+        venue: "Under review", badge: "Preprint", links: { arXiv: "https://arxiv.org/abs/2510.04295" } },
+      { year: 2026, title: "DoRAN: Stabilizing Weight-Decomposed Low-Rank Adaptation via Noise Injection and Auxiliary Networks",
+        authors: "T. Truong*, N. T. Diep*, H. Dang*, T. Dinh, H. Nguyen, N. Ho",
+        venue: "Under review", badge: "Preprint", links: { arXiv: "https://arxiv.org/abs/2510.04331" } },
+      { year: 2025, title: "RepLoRA: Reparameterizing Low-Rank Adaptation via the Perspective of Mixture of Experts",
+        authors: "T. Truong*, C. Nguyen*, H. Nguyen*, M. Le, N. Ho, T. Le",
+        venue: "International Conference on Machine Learning (ICML), 2025", badge: "ICML 2025", links: { arXiv: "https://arxiv.org/abs/2502.03044" } },
+      { year: 2025, title: "Improving Generalization with Flat Hilbert Bayesian Inference",
+        authors: "T. Truong*, Q. Tran*, N. Q. Pham, N. Ho, D. Phung, T. Le",
+        venue: "International Conference on Machine Learning (ICML), 2025", badge: "ICML 2025", links: { arXiv: "https://arxiv.org/abs/2410.04196" } },
+      { year: 2025, title: "Promoting Ensemble Diversity with Interactive Bayesian Distributional Robustness for Fine-tuning Foundation Models",
+        authors: "T. Truong*, N. Q. Pham*, Q. Tran, T. Nguyen, D. Phung, T. Le",
+        venue: "International Conference on Machine Learning (ICML), 2025", badge: "ICML 2025", links: { arXiv: "https://arxiv.org/abs/2506.07247" } },
+      { year: 2025, title: "Beyond Losses Reweighting: Empowering Multi-Task Learning via the Generalization Perspective",
+        authors: "H. Phan*, L. Tran*, Q. Tran, N. Tran, T. Truong, Q. Lei, N. Ho, D. Phung, T. Le",
+        venue: "International Conference on Computer Vision (ICCV), Highlight, 2025", badge: "ICCV 2025 · Highlight", links: { arXiv: "https://arxiv.org/abs/2211.13723" } },
+      { year: 2024, title: "Explicit Eigenvalue Regularization Improves Sharpness-Aware Minimization",
+        authors: "H. Luo, T. Truong, T. Pham, M. Harandi, D. Phung, T. Le",
+        venue: "Advances in Neural Information Processing Systems (NeurIPS), 2024", badge: "NeurIPS 2024", links: { arXiv: "https://arxiv.org/abs/2501.12666" } },
+      { year: 2024, title: "UNSAT Solver Synthesis via Monte Carlo Forest Search",
+        authors: "C. Cameron, J. Hartford, T. Lundy, T. Truong, A. Milligan, R. Chen, K. Leyton-Brown",
+        venue: "International Conference on the Integration of Constraint Programming, Artificial Intelligence, and Operations Research (CPAIOR), pp. 170–189, 2024", badge: "CPAIOR 2024", links: { arXiv: "https://arxiv.org/abs/2211.12581" } },
+      { year: 2022, title: "Expected Improvement for Contextual Bandits",
+        authors: "H. Tran-The, S. Gupta, S. Rana, T. Truong, L. Tran-Thanh, S. Venkatesh",
+        venue: "Advances in Neural Information Processing Systems (NeurIPS), 2022", badge: "NeurIPS 2022",
+        links: { paper: "https://proceedings.neurips.cc/paper_files/paper/2022/hash/8f0942c43fcfba4cc66a859b9fcb1bba-Abstract-Conference.html", OpenReview: "https://openreview.net/forum?id=uzn0WLCfuC_" } }
+    ];
+
+    // ============ Theme toggle (light default; versioned key ignores stale values) ============
+    (function () {
+      const KEY = "theme-v2";
+      const stored = localStorage.getItem(KEY);
+      const theme = stored === "dark" || stored === "light" ? stored : "light";
+      document.documentElement.setAttribute("data-theme", theme);
+      const btn = document.getElementById("theme-toggle");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", next);
+          localStorage.setItem(KEY, next);
+        });
+      }
+    })();
+
+    // ============ Scroll-spy: highlight the nav link for the section in view ============
+    (function () {
+      const links = [...document.querySelectorAll('.nav-links a[href^="#"]')];
+      if (!links.length) return;
+      const byId = new Map(links.map((a) => [a.getAttribute("href").slice(1), a]));
+      const sections = [...byId.keys()].map((id) => document.getElementById(id)).filter(Boolean);
+      if (!sections.length) return;
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (!e.isIntersecting) return;
+            links.forEach((l) => l.classList.remove("active"));
+            const link = byId.get(e.target.id);
+            if (link) link.classList.add("active");
+          });
+        },
+        { rootMargin: "-45% 0px -50% 0px", threshold: 0 }
+      );
+      sections.forEach((s) => observer.observe(s));
+    })();
+
+    // ============ Render publications, grouped by year ============
+    (function () {
+      const root = document.getElementById("all-pubs");
+      if (!root) return;
+
+      const highlightAuthors = (a) => a.replace(/T\. Truong(\*?)/g, "<strong>T. Truong$1</strong>");
+      const pubItemHTML = (p) => {
+        const links = Object.entries(p.links || {})
+          .map(([label, url]) => `<a href="${url}" target="_blank" rel="noopener">[${label}]</a>`)
+          .join(" ");
+        return `
+          <div class="pub-title">${p.title}</div>
+          <div class="pub-authors">${highlightAuthors(p.authors)}</div>
+          <div class="pub-venue"><span class="pub-badge">${p.badge}</span>${p.venue}</div>
+          ${links ? `<div class="pub-links">${links}</div>` : ""}`;
+      };
+
+      const byYear = new Map();
+      PUBLICATIONS.forEach((p) => {
+        if (!byYear.has(p.year)) byYear.set(p.year, []);
+        byYear.get(p.year).push(p);
+      });
+      [...byYear.keys()].sort((a, b) => b - a).forEach((year) => {
+        const h = document.createElement("h3");
+        h.className = "pub-year-heading";
+        h.textContent = year;
+        root.appendChild(h);
+        const ol = document.createElement("ol");
+        ol.className = "pub-list";
+        byYear.get(year).forEach((p) => {
+          const li = document.createElement("li");
+          li.innerHTML = pubItemHTML(p);
+          ol.appendChild(li);
+        });
+        root.appendChild(ol);
+      });
+    })();
+
+    // ============ Sisyphus mark: a figure endlessly pushing a rock round the loop ============
+    (function () {
+      var loop   = document.getElementById('loop');
+      var rock   = document.getElementById('rock');
+      var figure = document.getElementById('figure');
+      var limbs  = document.getElementById('fig-lines');
+      var head   = document.getElementById('fig-head');
+      if (!loop || !loop.getTotalLength) return;
+
+      var L = loop.getTotalLength();
+      var HALF_STROKE = 0.75, ROCK_R = 12;
+
+      // Local frame: x runs along the curve in the direction of travel, y rises
+      // away from the line. A planted foot slides backwards at body speed.
+      var XF = 2.6, XB = -5.6, STANCE = 0.6, LIFT = 1.1, HIP_Y = 6.4, SEG = 4.6;
+      var STRIDE = (XF - XB) / STANCE;
+      var TORSO = [2.155, 4.622], ARM = [5.909, 1.042], HEAD = [2.511, -0.673];
+
+      function foot(u) {
+        u -= Math.floor(u);
+        if (u < STANCE) return [XF + (XB - XF) * (u / STANCE), 0];
+        var k = (u - STANCE) / (1 - STANCE);
+        return [XB + (XF - XB) * k, LIFT * Math.sin(Math.PI * k)];
+      }
+      function knee(hip, ft) {
+        var dx = ft[0] - hip[0], dy = ft[1] - hip[1];
+        var d = Math.min(Math.hypot(dx, dy), 2 * SEG - 1e-6) || 1e-9;
+        var ux = dx / d, uy = dy / d;
+        var e = Math.sqrt(Math.max(0, SEG * SEG - d * d / 4));
+        var px = -uy, py = ux;
+        if (px < 0) { px = uy; py = -ux; }
+        return [hip[0] + ux * d / 2 + px * e, hip[1] + uy * d / 2 + py * e];
+      }
+      function pose(phase) {
+        var hip = [0, HIP_Y + 0.30 * Math.sin(4 * Math.PI * phase)];
+        var sho = [hip[0] + TORSO[0], hip[1] + TORSO[1]];
+        var a = foot(phase), b = foot(phase + 0.5);
+        var ka = knee(hip, a), kb = knee(hip, b);
+        var n = function (p) { return p[0].toFixed(2) + ' ' + p[1].toFixed(2); };
+        return {
+          hand: [sho[0] + ARM[0], sho[1] + ARM[1]],
+          head: [sho[0] + HEAD[0], sho[1] + HEAD[1]],
+          d: 'M' + n(hip) + ' L' + n(ka) + ' L' + n(a) +
+             ' M' + n(hip) + ' L' + n(kb) + ' L' + n(b) +
+             ' M' + n(hip) + ' L' + n(sho) + ' L' + n([sho[0] + ARM[0], sho[1] + ARM[1]]) +
+             ' M' + n(sho) + ' L' + n([sho[0] + HEAD[0], sho[1] + HEAD[1]])
+        };
+      }
+      function at(s) { s = ((s % L) + L) % L; var p = loop.getPointAtLength(s); return [p.x, p.y]; }
+      function frame(s) {
+        var h = 0.35, a = at(s - h), b = at(s + h);
+        var tx = a[0] - b[0], ty = a[1] - b[1], m = Math.hypot(tx, ty) || 1;
+        tx /= m; ty /= m;
+        var p = at(s);
+        return { x: p[0] + HALF_STROKE * -ty, y: p[1] + HALF_STROKE * tx, cos: tx, sin: ty, deg: Math.atan2(ty, tx) * 180 / Math.PI };
+      }
+      function localPt(f, p) { return [f.x + p[0] * f.cos - p[1] * f.sin, f.y + p[0] * f.sin + p[1] * f.cos]; }
+      function figureAt(sRock, hand) {
+        var c = localPt(frame(sRock), [0, ROCK_R]), lo = 2, hi = 60;
+        for (var i = 0; i < 24; i++) {
+          var mid = (lo + hi) / 2, h = localPt(frame(sRock + mid), hand);
+          if (Math.hypot(h[0] - c[0], h[1] - c[1]) > ROCK_R) hi = mid; else lo = mid;
+        }
+        return sRock + (lo + hi) / 2;
+      }
+      function place(el, s) {
+        var f = frame(s);
+        el.setAttribute('transform', 'translate(' + f.x.toFixed(3) + ',' + f.y.toFixed(3) + ') rotate(' + f.deg.toFixed(3) + ')');
+      }
+      function render(sRock, phase) {
+        var p = pose(phase);
+        limbs.setAttribute('d', p.d);
+        head.setAttribute('cx', p.head[0].toFixed(2));
+        head.setAttribute('cy', p.head[1].toFixed(2));
+        place(rock, sRock);
+        place(figure, figureAt(sRock, p.hand));
+      }
+
+      var parked = 0, best = Infinity;
+      for (var i = 0; i < 1600; i++) {
+        var s = L * i / 1600, p = at(s), d = Math.hypot(p[0] + 118.37, p[1] + 29.24);
+        if (d < best) { best = d; parked = s; }
+      }
+
+      // Static "fish" by default; click the mark to toggle Sisyphus into motion.
+      var svg  = document.getElementById('sisyphus');
+      var hint = document.getElementById('mark-hint');
+      var PERIOD = 40000;               // ms per lap — slow, toilsome
+      var SPEED = L / PERIOD;           // units per ms
+      var raf = null, last = null, travelled = 0, playing = false;
+
+      render(parked, 0);                // resting pose — reads as a fish until clicked
+
+      function tick(t) {
+        if (last === null) last = t;
+        travelled += (t - last) * SPEED;
+        last = t;
+        render(parked - travelled, travelled / STRIDE);
+        raf = requestAnimationFrame(tick);
+      }
+      function setPlaying(on) {
+        playing = on;
+        if (hint) hint.textContent = on ? '(click to pause)' : '(click to make him move)';
+        if (on) { if (!raf) { last = null; raf = requestAnimationFrame(tick); } }
+        else if (raf) { cancelAnimationFrame(raf); raf = null; }
+      }
+      if (svg) svg.addEventListener('click', function () { setPlaying(!playing); });
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) { if (raf) { cancelAnimationFrame(raf); raf = null; last = null; } }
+        else if (playing && !raf) { last = null; raf = requestAnimationFrame(tick); }
+      });
+    })();
+  </script>
+</body>
+</html>
