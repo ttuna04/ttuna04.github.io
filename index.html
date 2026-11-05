@@ -474,7 +474,7 @@
       let lastActivity = now(), asleep = false, sleepStart = 0, sleepLevel = 0;
       let hoverEl = null, hoverKind = null;
       // Cartoon moments: a dizzy spell (stars circle his head) and a startle when woken (a "!" pops up).
-      const DIZZY = 1.9;                                        // seconds
+      const DIZZY = 0.9;                                        // seconds
       let dizzyStart = -1, startleFrom = -1, afterMood = null;  // afterMood: [name, seconds] once the current mood ends
       // Dark mode: he loves the dark. A blissful moment (eyes closed, leaning back), then a cozy smile.
       const BLISS = 2.6;
@@ -487,7 +487,7 @@
       const dizzyEnv = (t) => {
         const k = t - dizzyStart;
         if (dizzyStart < 0 || k >= DIZZY) return 0;
-        return Math.min(1, k / 0.18) * Math.min(1, (DIZZY - k) / 0.45);
+        return Math.min(1, k / 0.15) * Math.min(1, (DIZZY - k) / 0.3);
       };
       // Eyelids while dozing off (seconds since he started, how closed): heavy, fights it once, gone.
       const DOZE = [[0, 0], [1.3, 0.62], [1.7, 0.22], [3.3, 0.8], [3.7, 0.5], [5.2, 1]];
