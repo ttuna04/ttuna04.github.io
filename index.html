@@ -19,250 +19,17 @@
     "alumniOf": { "@type": "Organization", "name": "University of British Columbia" }
   }
   </script>
-  <style>
-    /* ============ Theme variables ============ */
-    :root {
-      /* White & blue theme */
-      --bg: #ffffff;
-      --bg-alt: #eef3fc;
-      --text: #14264f;         /* navy blue body text */
-      --text-muted: #5a6b8c;   /* muted blue-grey */
-      --accent: #1d4ed8;       /* blue links / headings accents */
-      --accent-soft: #1d4ed81a;
-      --border: #d7e1f3;
-      --shadow: 0 2px 12px rgba(29, 78, 216, 0.08);
-    }
-    [data-theme="dark"] {
-      --bg: #0f1830;
-      --bg-alt: #172444;
-      --text: #dfe8fb;
-      --text-muted: #93a4c8;
-      --accent: #6aa0ff;
-      --accent-soft: #6aa0ff22;
-      --border: #26355c;
-      --shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
-    }
-
-    * { box-sizing: border-box; }
-
-    html { scroll-behavior: smooth; scroll-padding-top: 4.5rem; }
-
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      font-size: 16px;
-      line-height: 1.65;
-      color: var(--text);
-      background: var(--bg);
-      transition: background 0.25s, color 0.25s;
-    }
-
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-
-    /* ============ Nav ============ */
-    .nav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: color-mix(in srgb, var(--bg) 88%, transparent);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid var(--border);
-    }
-    .nav-inner {
-      max-width: 780px;
-      margin: 0 auto;
-      padding: 0.7rem 1.25rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .nav-brand { font-weight: 700; color: var(--text); }
-    .nav-brand:hover { text-decoration: none; color: var(--accent); }
-    .nav-links { display: flex; align-items: center; gap: 1.1rem; }
-    .nav-links a { color: var(--text-muted); font-size: 0.95rem; }
-    .nav-links a:hover, .nav-links a.active { color: var(--accent); text-decoration: none; }
-    .theme-toggle {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 1.1rem;
-      cursor: pointer;
-      padding: 0.15rem 0.35rem;
-      border-radius: 6px;
-    }
-    .theme-toggle:hover { color: var(--accent); background: var(--accent-soft); }
-
-    /* ============ Layout ============ */
-    .container {
-      max-width: 780px;
-      margin: 0 auto;
-      padding: 2.5rem 1.25rem 4rem;
-    }
-
-    section { margin-top: 3rem; }
-
-    h1 { font-size: 1.9rem; margin: 0 0 0.25rem; }
-    h2 {
-      font-size: 1.3rem;
-      border-bottom: 2px solid var(--accent-soft);
-      padding-bottom: 0.35rem;
-      margin-bottom: 1rem;
-    }
-
-    .muted { color: var(--text-muted); font-size: 0.92rem; }
-
-    /* ============ Hero ============ */
-    .hero {
-      display: flex;
-      gap: 2rem;
-      align-items: flex-start;
-    }
-    .hero-text { flex: 1; min-width: 0; }
-    .tagline { color: var(--text-muted); margin-top: 0; font-size: 1.02rem; text-wrap: balance; }
-    p, .pub-title { text-wrap: pretty; }   /* no lone last words */
-    .nowrap { white-space: nowrap; }
-    /* a sub-heading inside the hero, lighter than the page sections */
-    .interests h2 { font-size: 1.08rem; border-bottom: 0; padding-bottom: 0; margin: 1.3rem 0 0.3rem; }
-    .interests p { margin: 0 0 1rem; }
-    /* ============ Avatar (hero): 3D head built from the portrait (three.js); a still render of it is the fallback ============ */
-    .hero-avatar-wrap { flex-shrink: 0; text-align: center; }
-    .hero-avatar {
-      position: relative; width: 240px; height: 240px;
-      border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 1px var(--border), var(--shadow);
-      /* soft blue to match the site; also tried: grey #b8b8b5/#a8a8a5, sand #e9dcc8/#d2bfa3,
-         sage #d2ddd0/#adc1aa, navy #3a5285/#22345c */
-      background: radial-gradient(circle at 50% 36%, #cfdcf3, #a9bfe6 75%);
-    }
-    .hero-avatar img, .hero-avatar canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-    .hero-avatar img { object-fit: cover; transition: opacity 0.35s ease, filter 0.6s ease; }
-    .hero-avatar canvas { opacity: 0; transition: opacity 0.35s ease, filter 0.6s ease; }
-    /* dark theme: the lights go down for the avatar too (dusk-blue circle, face a little dimmer) */
-    .hero-avatar::before { content: ""; position: absolute; inset: 0; opacity: 0; transition: opacity 0.6s ease;
-      background: radial-gradient(circle at 50% 36%, #4d6390, #2b3b60 75%); }
-    [data-theme="dark"] .hero-avatar::before { opacity: 1; }
-    [data-theme="dark"] .hero-avatar img, [data-theme="dark"] .hero-avatar canvas { filter: brightness(0.84); }
-    .hero-avatar.is-3d canvas { opacity: 1; }
-    .hero-avatar.is-3d img { opacity: 0; }
-    .hero-avatar.is-3d { cursor: pointer; outline: none; }
-    .hero-avatar:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-
-    /* ============ Quote + Sisyphus ("absurdism corner") ============ */
-    .absurd-corner { display: flex; align-items: center; justify-content: space-between; gap: 2rem; margin-top: 2.75rem; }
-    .absurd-corner .intro-quote { margin: 0; flex: 1; }
-    .sisyphus-mark { flex-shrink: 0; margin: 0; width: 210px; text-align: center; }
-    .sisyphus-mark svg { width: 100%; height: auto; overflow: visible; display: block; cursor: pointer; }
-    .sisyphus-mark #loop, .sisyphus-mark #fig-lines { stroke: var(--text); }
-    .sisyphus-mark #fig-head { fill: var(--text); }
-    .sisyphus-mark #rock circle { fill: var(--accent); }
-    .mark-caption {
-      margin-top: 0.75rem;
-      font-size: 0.75rem;
-      font-style: italic;
-      color: var(--text-muted);
-      line-height: 1.45;
-    }
-    .mark-hint {
-      margin: 0.25rem 0 0;
-      font-size: 0.68rem;
-      color: var(--text-muted);
-      opacity: 0.8;
-    }
-
-    /* ============ Intro quote ============ */
-    .intro-quote {
-      max-width: 34rem;
-      margin: 2.75rem 0 0;
-      text-align: left;
-      border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
-      border-radius: 0;
-      padding-left: 1.1rem;
-      font-style: italic;
-      font-size: 1.02rem;
-      line-height: 1.6;
-      color: var(--text-muted);
-    }
-    .intro-quote cite {
-      display: block;
-      margin-top: 0.5rem;
-      font-size: 0.85rem;
-      font-style: normal;
-    }
-    .contact-line { margin-top: 1.2rem; font-weight: 500; }
-
-    /* ============ Publications ============ */
-    .pub-list { padding-left: 1.25rem; }
-    .pub-list li { margin-bottom: 1rem; }
-    .pub-title { font-weight: 600; }
-    .pub-authors { font-size: 0.94rem; }
-    .pub-venue { font-size: 0.9rem; color: var(--text-muted); display: inline; }
-    .pub-badge {
-      display: inline-block;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--accent);
-      background: var(--accent-soft);
-      border-radius: 5px;
-      padding: 0.05rem 0.45rem;
-      margin-right: 0.4rem;
-      vertical-align: 1px;
-    }
-    .pub-links { display: inline; margin-left: 0.45rem; }   /* links on the venue line */
-    .pub-links a { font-size: 0.85rem; margin-right: 0.45rem; }
-    .pub-year-heading {
-      font-size: 1.15rem;
-      margin: 2rem 0 0.75rem;
-      color: var(--text-muted);
-    }
-
-    /* ============ CV lists (experience / education) ============ */
-    .cv-list { list-style: none; padding: 0; }
-    .cv-list li { margin-bottom: 1.25rem; }
-    .cv-head { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-    .cv-date { color: var(--text-muted); font-size: 0.88rem; white-space: nowrap; }
-    .cv-sub { font-size: 0.94rem; }
-    .cv-desc { font-size: 0.92rem; color: var(--text-muted); margin-top: 0.15rem; }
-
-    .honor-list { list-style: none; padding: 0; }
-    .honor-list li {
-      padding: 0.3rem 0;
-      border-bottom: 1px dashed var(--border);
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-    }
-
-    /* ============ Footer ============ */
-    .footer {
-      margin-top: 4rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid var(--border);
-      color: var(--text-muted);
-      font-size: 0.88rem;
-    }
-
-    /* ============ Responsive ============ */
-    @media (max-width: 640px) {
-      .hero { flex-direction: column-reverse; align-items: center; text-align: left; }
-      .hero-avatar-wrap { margin: 1.25rem 0 0.5rem; }
-      .absurd-corner { flex-direction: column; align-items: stretch; }
-      .sisyphus-mark { align-self: center; }
-    }
-    @media (max-width: 520px) {
-      /* the name is right below in the hero; the bar keeps just the links */
-      .nav-brand { display: none; }
-      .nav-inner { justify-content: flex-end; }
-    }
-  </style>
+  <link rel="stylesheet" href="site.css?v=1">
+  <script src="site.js?v=1"></script>
 </head>
 <body>
   <nav class="nav">
     <div class="nav-inner">
       <a href="#top" class="nav-brand">Tuan M. Truong</a>
       <div class="nav-links">
-        <a href="#publications">Publications</a>
-        <a href="#experience">Experience</a>
-        <a href="#honors">Honors</a>
+        <a href="publications.html">Publications</a>
+        <a href="experience.html">Experience</a>
+        <a href="honors.html">Honors</a>
         <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">◐</button>
       </div>
     </div>
@@ -323,192 +90,12 @@
       -->
     </div>
 
-    <!-- ===================== Publications ===================== -->
-    <section id="publications">
-      <h2>Publications</h2>
-      <p class="muted">(*) denotes equal contribution.</p>
-      <div id="all-pubs"></div>
-    </section>
-
-    <!-- ===================== Experience ===================== -->
-    <section id="experience">
-      <h2>Experience</h2>
-      <ul class="cv-list">
-        <li>
-          <div class="cv-head"><strong>National University of Singapore</strong><span class="cv-date">Aug 2026 – Present</span></div>
-          <div class="cv-sub">PhD Student, School of Computing · Advisor: Prof. Shuicheng Yan</div>
-        </li>
-        <li>
-          <div class="cv-head"><strong>Center for AI Research, VinUniversity</strong><span class="cv-date">Dec 2025 – Jun 2026</span></div>
-          <div class="cv-sub">AI Research Resident · Hanoi, Vietnam · Supervisor: Duy Nguyen (PhD Candidate, Max Planck Research School for Intelligent Systems &amp; DFKI)</div>
-          <div class="cv-desc">Data-efficient vision-language-action (VLA) models for robot manipulation.</div>
-        </li>
-        <li>
-          <div class="cv-head"><strong>VinAI Research (now Qualcomm AI Research)</strong><span class="cv-date">Feb 2023 – Jul 2025</span></div>
-          <div class="cv-sub">Research Resident · Supervisors: Prof. Trung Le (Monash), Prof. Nhat Ho (UT Austin)</div>
-          <div class="cv-desc">Robust and data-efficient PEFT techniques for large foundation models — four papers at ICML 2025 (3) and NeurIPS 2024 (1).</div>
-        </li>
-        <li>
-          <div class="cv-head"><strong>University of British Columbia</strong><span class="cv-date">Apr 2022 – Apr 2023</span></div>
-          <div class="cv-sub">Research Assistant with Prof. Kevin Leyton-Brown; TA for CPSC 340 (Machine Learning &amp; Data Mining)</div>
-          <div class="cv-desc">Boolean satisfiability solvers via reinforcement learning — co-authored "UNSAT Solver Synthesis via Monte Carlo Forest Search" (CPAIOR 2024).</div>
-        </li>
-        <li>
-          <div class="cv-head"><strong>FPT Software AI Center</strong><span class="cv-date">May 2021 – Mar 2022</span></div>
-          <div class="cv-sub">Research Resident · Supervisor: Prof. Hung Tran-The</div>
-          <div class="cv-desc">Contextual bandits and offline RL — co-authored "Expected Improvement for Contextual Bandits" (NeurIPS 2022).</div>
-        </li>
-      </ul>
-    </section>
-
-    <!-- ===================== Education ===================== -->
-    <section id="education">
-      <h2>Education</h2>
-      <ul class="cv-list">
-        <li>
-          <div class="cv-head"><strong>National University of Singapore</strong><span class="cv-date">Aug 2026 – Present</span></div>
-          <div class="cv-sub">PhD, School of Computing · Advisor: Prof. Shuicheng Yan</div>
-        </li>
-        <li>
-          <div class="cv-head"><strong>University of British Columbia</strong><span class="cv-date">Sept 2020 – May 2024</span></div>
-          <div class="cv-sub">BSc, Combined Honours in Mathematics and Computer Science · GPA 87.32% (A)</div>
-        </li>
-      </ul>
-    </section>
-
-    <!-- ===================== Honors ===================== -->
-    <section id="honors">
-      <h2>Honors &amp; Awards</h2>
-      <ul class="honor-list">
-        <li><span><strong>Bronze Medal</strong>, 59th International Mathematical Olympiad (IMO)</span> <span class="cv-date">2018</span></li>
-        <li><span><strong>Second Prize</strong>, Vietnamese Mathematical Olympiad (VMO)</span> <span class="cv-date">2018</span></li>
-        <li><span><strong>Third Prize</strong>, Vietnamese Mathematical Olympiad (VMO)</span> <span class="cv-date">2017</span></li>
-        <li><span>UBC Trek Excellence Scholarship for Continuing Students</span> <span class="cv-date">2023</span></li>
-        <li><span>UBC Computer Science Scholarship</span> <span class="cv-date">2023</span></li>
-        <li><span>UBC Faculty of Science International Student Scholarship</span> <span class="cv-date">2022, 2023</span></li>
-        <li><span>First Runner-up, DENSO Factory Hacks Hackathon Challenge</span> <span class="cv-date">2023</span></li>
-      </ul>
-    </section>
-
-    <!-- ===================== Services ===================== -->
-    <section id="services">
-      <h2>Professional Services</h2>
-      <p>Reviewer: ICML (2024–2026), ICLR (2024–2026), CVPR (2024–2025), NeurIPS (2026).</p>
-    </section>
-
     <footer class="footer">
       <p>© 2026 Tuan M. Truong</p>
     </footer>
   </main>
 
   <script>
-    // ============ Publication data ============
-    const PUBLICATIONS = [
-      { year: 2026, title: "Hypernetwork-Driven Low-Rank Adaptation Across Attention Heads",
-        authors: "T. Truong*, N. T. Diep*, L. Q. Dung*, T. Dinh, H. Nguyen, N. Ho",
-        venue: "Under review", badge: "Preprint", links: { arXiv: "https://arxiv.org/abs/2510.04295" } },
-      { year: 2026, title: "DoRAN: Stabilizing Weight-Decomposed Low-Rank Adaptation via Noise Injection and Auxiliary Networks",
-        authors: "T. Truong*, N. T. Diep*, H. Dang*, T. Dinh, H. Nguyen, N. Ho",
-        venue: "Under review", badge: "Preprint", links: { arXiv: "https://arxiv.org/abs/2510.04331" } },
-      { year: 2025, title: "RepLoRA: Reparameterizing Low-Rank Adaptation via the Perspective of Mixture of Experts",
-        authors: "T. Truong*, C. Nguyen*, H. Nguyen*, M. Le, N. Ho, T. Le",
-        venue: "International Conference on Machine Learning (ICML), 2025", badge: "ICML 2025", links: { arXiv: "https://arxiv.org/abs/2502.03044" } },
-      { year: 2025, title: "Improving Generalization with Flat Hilbert Bayesian Inference",
-        authors: "T. Truong*, Q. Tran*, N. Q. Pham, N. Ho, D. Phung, T. Le",
-        venue: "International Conference on Machine Learning (ICML), 2025", badge: "ICML 2025", links: { arXiv: "https://arxiv.org/abs/2410.04196" } },
-      { year: 2025, title: "Promoting Ensemble Diversity with Interactive Bayesian Distributional Robustness for Fine-tuning Foundation Models",
-        authors: "T. Truong*, N. Q. Pham*, Q. Tran, T. Nguyen, D. Phung, T. Le",
-        venue: "International Conference on Machine Learning (ICML), 2025", badge: "ICML 2025", links: { arXiv: "https://arxiv.org/abs/2506.07247" } },
-      { year: 2025, title: "Beyond Losses Reweighting: Empowering Multi-Task Learning via the Generalization Perspective",
-        authors: "H. Phan*, L. Tran*, Q. Tran, N. Tran, T. Truong, Q. Lei, N. Ho, D. Phung, T. Le",
-        venue: "International Conference on Computer Vision (ICCV), Highlight, 2025", badge: "ICCV 2025 · Highlight", links: { arXiv: "https://arxiv.org/abs/2211.13723" } },
-      { year: 2024, title: "Explicit Eigenvalue Regularization Improves Sharpness-Aware Minimization",
-        authors: "H. Luo, T. Truong, T. Pham, M. Harandi, D. Phung, T. Le",
-        venue: "Advances in Neural Information Processing Systems (NeurIPS), 2024", badge: "NeurIPS 2024", links: { arXiv: "https://arxiv.org/abs/2501.12666" } },
-      { year: 2024, title: "UNSAT Solver Synthesis via Monte Carlo Forest Search",
-        authors: "C. Cameron, J. Hartford, T. Lundy, T. Truong, A. Milligan, R. Chen, K. Leyton-Brown",
-        venue: "International Conference on the Integration of Constraint Programming, Artificial Intelligence, and Operations Research (CPAIOR), pp. 170–189, 2024", badge: "CPAIOR 2024", links: { arXiv: "https://arxiv.org/abs/2211.12581" } },
-      { year: 2022, title: "Expected Improvement for Contextual Bandits",
-        authors: "H. Tran-The, S. Gupta, S. Rana, T. Truong, L. Tran-Thanh, S. Venkatesh",
-        venue: "Advances in Neural Information Processing Systems (NeurIPS), 2022", badge: "NeurIPS 2022",
-        links: { paper: "https://proceedings.neurips.cc/paper_files/paper/2022/hash/8f0942c43fcfba4cc66a859b9fcb1bba-Abstract-Conference.html", OpenReview: "https://openreview.net/forum?id=uzn0WLCfuC_" } }
-    ];
-
-    // ============ Theme toggle (light default; versioned key ignores stale values) ============
-    (function () {
-      const KEY = "theme-v2";
-      const stored = localStorage.getItem(KEY);
-      const theme = stored === "dark" || stored === "light" ? stored : "light";
-      document.documentElement.setAttribute("data-theme", theme);
-      const btn = document.getElementById("theme-toggle");
-      if (btn) {
-        btn.addEventListener("click", () => {
-          const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-          document.documentElement.setAttribute("data-theme", next);
-          localStorage.setItem(KEY, next);
-        });
-      }
-    })();
-
-    // ============ Scroll-spy: highlight the nav link for the section in view ============
-    (function () {
-      const links = [...document.querySelectorAll('.nav-links a[href^="#"]')];
-      if (!links.length) return;
-      const byId = new Map(links.map((a) => [a.getAttribute("href").slice(1), a]));
-      const sections = [...byId.keys()].map((id) => document.getElementById(id)).filter(Boolean);
-      if (!sections.length) return;
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((e) => {
-            if (!e.isIntersecting) return;
-            links.forEach((l) => l.classList.remove("active"));
-            const link = byId.get(e.target.id);
-            if (link) link.classList.add("active");
-          });
-        },
-        { rootMargin: "-45% 0px -50% 0px", threshold: 0 }
-      );
-      sections.forEach((s) => observer.observe(s));
-    })();
-
-    // ============ Render publications, grouped by year ============
-    (function () {
-      const root = document.getElementById("all-pubs");
-      if (!root) return;
-
-      const highlightAuthors = (a) => a.replace(/T\. Truong(\*?)/g, "<strong>T. Truong$1</strong>");
-      const pubItemHTML = (p) => {
-        const links = Object.entries(p.links || {})
-          .map(([label, url]) => `<a href="${url}" target="_blank" rel="noopener">[${label}]</a>`)
-          .join(" ");
-        return `
-          <div class="pub-title">${p.title}</div>
-          <div class="pub-authors">${highlightAuthors(p.authors)}</div>
-          <div class="pub-venue"><span class="pub-badge">${p.badge}</span>${p.venue}</div>
-          ${links ? `<div class="pub-links">${links}</div>` : ""}`;
-      };
-
-      const byYear = new Map();
-      PUBLICATIONS.forEach((p) => {
-        if (!byYear.has(p.year)) byYear.set(p.year, []);
-        byYear.get(p.year).push(p);
-      });
-      [...byYear.keys()].sort((a, b) => b - a).forEach((year) => {
-        const h = document.createElement("h3");
-        h.className = "pub-year-heading";
-        h.textContent = year;
-        root.appendChild(h);
-        const ol = document.createElement("ol");
-        ol.className = "pub-list";
-        byYear.get(year).forEach((p) => {
-          const li = document.createElement("li");
-          li.innerHTML = pubItemHTML(p);
-          ol.appendChild(li);
-        });
-        root.appendChild(ol);
-      });
-    })();
-
     // ============ Sisyphus mark: a figure endlessly pushing a rock round the loop ============
     (function () {
       var loop   = document.getElementById('loop');
@@ -871,12 +458,12 @@
         annoyed: { smile: 0, jaw: 0, frown: 1, blush: 0.35, squint: 0.55 },
         dazzled: { smile: 0, jaw: 0, frown: 0.55, blush: 0.1, squint: 1 },     // the lights came on
         cozy: { smile: 0.45, jaw: 0, frown: 0, blush: 0.25, squint: 0.4 },     // the lights went down
+        dizzy: { smile: 0.15, jaw: 0, frown: 0, blush: 0.3, squint: 0.15 },    // seeing stars (mouth hangs open, see jawT)
+        bliss: { smile: 0.95, jaw: 0, frown: -0.25, blush: 0.5, squint: 1 },   // "ahh, the dark": eyes closed, big content smile
+        startled: { smile: 0, jaw: 0, frown: -0.9, blush: 0, squint: 0 },      // brows shoot up, "oh!" mouth
       };
-      // A link under the cursor gets an interested smile; his own papers a proud one.
-      const HOVER = {
-        interest: { smile: 0.4, frown: 0, blush: 0.12, squint: 0.3 },
-        proud: { smile: 0.62, frown: 0, blush: 0.3, squint: 0.45 },
-      };
+      // A link under the cursor gets an interested smile.
+      const HOVER = { interest: { smile: 0.4, frown: 0, blush: 0.12, squint: 0.3 } };
       const live = { yaw: 0, pitch: 0, gazeX: 0, gazeY: 0, smile: 0, jaw: 0, frown: 0, blush: 0, squint: 0, blink: 0 };
       let pointer = null, lastMove = -1e9;
       let idle = { yaw: 0, pitch: 0 }, nextIdle = 0;
@@ -886,6 +473,22 @@
       const SLEEP_AFTER = 35;                                   // seconds
       let lastActivity = now(), asleep = false, sleepStart = 0, sleepLevel = 0;
       let hoverEl = null, hoverKind = null;
+      // Cartoon moments: a dizzy spell (stars circle his head) and a startle when woken (a "!" pops up).
+      const DIZZY = 1.9;                                        // seconds
+      let dizzyStart = -1, startleFrom = -1, afterMood = null;  // afterMood: [name, seconds] once the current mood ends
+      // Dark mode: he loves the dark. A blissful moment (eyes closed, leaning back), then a cozy smile.
+      const BLISS = 2.6;
+      let blissStart = -1, blissSide = 1;
+      const blissEnv = (t) => {
+        const k = t - blissStart;
+        if (blissStart < 0 || k >= BLISS) return 0;
+        return Math.min(1, k / 0.35) * Math.min(1, (BLISS - k) / 0.6);
+      };
+      const dizzyEnv = (t) => {
+        const k = t - dizzyStart;
+        if (dizzyStart < 0 || k >= DIZZY) return 0;
+        return Math.min(1, k / 0.18) * Math.min(1, (DIZZY - k) / 0.45);
+      };
       // Eyelids while dozing off (seconds since he started, how closed): heavy, fights it once, gone.
       const DOZE = [[0, 0], [1.3, 0.62], [1.7, 0.22], [3.3, 0.8], [3.7, 0.5], [5.2, 1]];
       const dozeLids = (s) => {
@@ -937,13 +540,16 @@
         if (asleep) { b = 0; nextBlink = t + rand(1, 2.5); }
         const lids = asleep ? dozeLids(t - sleepStart) : 0;
         live.blink = t < squeezeUntil ? damp(live.blink, 1, 45, dt)
-          : Math.max(b, lids, damp(live.blink, 0, asleep ? 4 : 30, dt));
+          : Math.max(b, lids, 0.4 * dizzyEnv(t), 0.8 * blissEnv(t), damp(live.blink, 0, asleep ? 4 : 30, dt));
 
         // Mood after pokes, easing back to neutral.
-        if (mood && t > moodUntil) mood = null;
+        if (mood && t > moodUntil) {
+          if (afterMood) { [mood] = afterMood; moodUntil = t + afterMood[1]; afterMood = null; } else mood = null;
+        }
         const m = mood ? MOODS[mood] : (hoverKind && !asleep ? HOVER[hoverKind] : MOODS.neutral);
         for (const k of ['smile', 'frown', 'blush', 'squint']) live[k] = damp(live[k], m[k], mood ? 9 : hoverKind ? 6 : 3, dt);
-        const jawT = mood === 'laugh' ? 0.62 + 0.38 * Math.sin(t * 15) : 0;               // "ha-ha-ha"
+        const jawT = mood === 'laugh' ? 0.62 + 0.38 * Math.sin(t * 15)                    // "ha-ha-ha"
+          : mood === 'startled' ? 0.45 : mood === 'dizzy' ? 0.2 : 0;
         live.jaw = damp(live.jaw, jawT, 14, dt);
 
         for (const s of Object.values(springs)) {                                        // semi-implicit Euler
@@ -953,23 +559,32 @@
         const shake = shakeFrom >= 0 && t - shakeFrom < 1.6 ? 0.13 * Math.sin((t - shakeFrom) * 20) * Math.exp(-(t - shakeFrom) * 2.4) : 0;
         const bob = 0.008 * Math.sin(t * 1.7) * (1 - sleepLevel) + (mood === 'laugh' ? 0.03 * Math.sin(t * 15) : 0) + (mood === 'annoyed' ? 0.05 : 0);
         // asleep: the head sinks forward and tilts a little, rising and falling with slow breaths
-        const doze = sleepLevel * (-0.15 + 0.014 * Math.sin(t * 1.25));
+        const doze = sleepLevel * (0.17 + 0.014 * Math.sin(t * 1.25));   // + = forward
         live.gazeX *= 1 - sleepLevel; live.gazeY *= 1 - sleepLevel;
 
+        // dizzy: the head goes round in circles and the eyes roll the other way
+        const de = dizzyEnv(t), dk = t - dizzyStart, w = 2 * Math.PI * 1.5, we = -2 * Math.PI * 2.1;
+        const be = blissEnv(t), bk = t - blissStart;
+        const blissPitch = -0.07 * be, blissRoll = be * blissSide * (0.09 + 0.03 * Math.sin(2 * Math.PI * 0.6 * bk));
+        const startle = startleFrom >= 0 && t - startleFrom < 0.6 ? 0.04 * Math.sin((t - startleFrom) * 55) * Math.exp(-(t - startleFrom) * 6) : 0;
         Object.assign(pose, {
-          yaw: live.yaw + springs.yaw[0] + shake,
-          pitch: live.pitch + springs.pitch[0] + bob + doze,
-          roll: -0.12 * (live.yaw + springs.yaw[0]) + 0.07 * sleepLevel,
+          yaw: live.yaw + springs.yaw[0] + shake + startle + 0.16 * de * Math.sin(w * dk),
+          pitch: live.pitch + springs.pitch[0] + bob + doze + 0.09 * de * Math.cos(w * dk) + blissPitch,
+          roll: -0.12 * (live.yaw + springs.yaw[0]) + 0.07 * sleepLevel + 0.11 * de * Math.sin(w * dk + 0.9) + blissRoll,
           squash: springs.squash[0],
-          gazeX: live.gazeX, gazeY: live.gazeY, blink: live.blink,
+          gazeX: live.gazeX * (1 - de) * (1 - be) + 6.5 * de * Math.cos(we * dk),
+          gazeY: live.gazeY * (1 - de) * (1 - be) + 1.9 * de * Math.sin(we * dk),
+          blink: live.blink,
           squint: live.squint, blush: live.blush, smile: live.smile, frown: live.frown, jaw: live.jaw,
           dent: springs.dent[0],
         });
+        drawStars(t, de);
       }
 
       function poke(u, v, onFace) {
         activity();
         const t = now();
+        dizzyStart = -1; blissStart = -1; afterMood = null; twinkles.classList.remove('on');
         pokes = pokes.filter((p) => t - p < 3);
         pokes.push(t);
         if (onFace) { pose.pokeX = u; pose.pokeY = v; springs.dent[1] += 22; }
@@ -989,10 +604,14 @@
         lastActivity = t;
         if (asleep) {
           asleep = false;
-          springs.pitch[1] -= 2.6;            // head jerks up
-          springs.squash[1] -= 1.8;           // a little stretch
-          live.blink = 0;                     // eyes snap open
-          if (!mood) { mood = 'smile'; moodUntil = t + 1.3; }   // "oh! hi"
+          startleFrom = t;
+          springs.pitch[1] -= 7.5;            // head jerks up and back
+          springs.squash[1] -= 4.6;           // shoots up tall
+          springs.yaw[1] += (Math.random() < 0.5 ? -1 : 1) * 1.2;
+          live.blink = 0; sleepLevel = 0.35;  // eyes snap open, head comes up fast
+          mood = 'startled'; moodUntil = t + 0.75; afterMood = ['smile', 1.2];   // "oh!" ... "hi :)"
+          bang.classList.remove('on'); void bang.offsetWidth; bang.classList.add('on');
+          clearTimeout(bangTimer); bangTimer = setTimeout(() => bang.classList.remove('on'), 950);
         }
         schedule();
       }
@@ -1023,7 +642,71 @@
         @media (prefers-reduced-motion: reduce) { .avatar-zzz { display: none; } }`;
       document.head.appendChild(zStyle);
 
-      // The theme switch: lights on = dazzled for a moment, lights off = relaxed.
+      const fx = document.createElement('div');
+      fx.className = 'avatar-fx';
+      fx.setAttribute('aria-hidden', 'true');
+      const stars = [0, 1, 2, 3, 4].map(() => {
+        const e = document.createElement('span');
+        e.className = 'avatar-star';
+        e.textContent = '\u2605';
+        fx.appendChild(e);
+        return e;
+      });
+      const bang = document.createElement('span');
+      bang.className = 'avatar-bang';
+      bang.textContent = '!';
+      fx.appendChild(bang);
+      const twinkles = document.createElement('div');
+      twinkles.className = 'avatar-twinkles';
+      // spots around the head (fractions of the circle), each with its own size and delay
+      [[0.2, 0.22, 1, 0], [0.8, 0.18, 1.25, 0.35], [0.12, 0.5, 0.8, 0.7], [0.88, 0.47, 0.95, 0.15],
+        [0.3, 0.06, 0.75, 0.55], [0.7, 0.07, 0.85, 0.9], [0.5, -0.04, 0.7, 0.25]].forEach(([x, y, k, d]) => {
+        const e = document.createElement('span');
+        e.textContent = '\u2726';
+        e.style.cssText = `left:${x * 100}%;top:${y * 100}%;font-size:${k}em;animation-delay:${d}s`;
+        twinkles.appendChild(e);
+      });
+      fx.appendChild(twinkles);
+      host.parentElement.appendChild(fx);
+      let bangTimer = 0, starsShown = false, twinkleTimer = 0;
+      zStyle.textContent += `
+        .avatar-fx { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+        .avatar-star { position: absolute; left: 0; top: 0; font-size: 1em; line-height: 1; color: #f7c948;
+          text-shadow: 0 0 1px #8a5a00, 0 1px 3px rgba(0, 0, 0, 0.35); opacity: 0; will-change: transform, opacity; }
+        .avatar-bang { position: absolute; left: 50%; top: -9%; font: 800 2.1em/1 system-ui, sans-serif; color: #e4572e;
+          text-shadow: 0 2px 0 #fff, 0 2px 6px rgba(0, 0, 0, 0.25); opacity: 0; transform: translate(-50%, 30%) scale(0.3) rotate(-12deg);
+          transition: opacity 0.12s ease, transform 0.28s cubic-bezier(0.3, 1.9, 0.5, 1); }
+        .avatar-bang.on { opacity: 1; transform: translate(-50%, 0) scale(1) rotate(8deg); }
+        .avatar-twinkles { position: absolute; inset: 0; opacity: 0; transition: opacity 0.6s ease; }
+        .avatar-twinkles.on { opacity: 1; }
+        .avatar-twinkles span { position: absolute; line-height: 1; color: #fff3c4; transform: translate(-50%, -50%) scale(0);
+          text-shadow: 0 0 6px rgba(255, 236, 170, 0.9); }
+        .avatar-twinkles.on span { animation: avatar-tw 1.3s ease-in-out infinite; }
+        @keyframes avatar-tw {
+          0%, 100% { transform: translate(-50%, -50%) scale(0.2) rotate(0deg); opacity: 0.2; }
+          50% { transform: translate(-50%, -50%) scale(1) rotate(45deg); opacity: 1; }
+        }`;
+      // Stars on a flat ellipse above the head; they follow the head's tilt and are fainter/smaller behind it.
+      function drawStars(t, e) {
+        if (e <= 0) {
+          if (starsShown) { stars.forEach((st) => { st.style.opacity = 0; }); starsShown = false; }
+          return;
+        }
+        starsShown = true;
+        const S = host.clientWidth;
+        fx.style.fontSize = (S * 0.1).toFixed(1) + 'px';
+        const L = 0.6 * S, px = 0.517 * S, py = 0.6875 * S;                 // pivot: top of the neck
+        const cx = px - L * Math.sin(pose.roll), cy = py - L * Math.cos(pose.roll) * Math.cos(pose.pitch) + 0.02 * S;
+        const rx = 0.27 * S, ry = 0.065 * S, a0 = 2 * Math.PI * 1.1 * (t - dizzyStart);
+        stars.forEach((st, i) => {
+          const a = a0 + (i * 2 * Math.PI) / stars.length, front = (Math.sin(a) + 1) / 2;
+          const x = cx + rx * Math.cos(a), y = cy + ry * Math.sin(a), k = 0.65 + 0.45 * front;
+          st.style.opacity = (e * (0.35 + 0.65 * front)).toFixed(3);
+          st.style.transform = `translate(${(x - S * 0.05).toFixed(1)}px, ${(y - S * 0.05).toFixed(1)}px) scale(${k.toFixed(3)}) rotate(${(a * 57.3 * 0.5).toFixed(0)}deg)`;
+        });
+      }
+
+      // The theme switch: dark = he enjoys it (bliss + twinkles); light = a dizzy spell, then squinting.
       let theme = document.documentElement.getAttribute('data-theme');
       new MutationObserver(() => {
         const next = document.documentElement.getAttribute('data-theme');
@@ -1032,20 +715,30 @@
         if (reduceMotion.matches) return;
         activity();
         const t = now();
-        if (next === 'dark') { mood = 'cozy'; moodUntil = t + 1.6; }
-        else {
-          mood = 'dazzled'; moodUntil = t + 1.0; squeezeUntil = t + 0.35;
-          springs.pitch[1] += 1.4;                                   // flinches back from the light
-          springs.yaw[1] += (Math.random() < 0.5 ? -1 : 1) * 1.8;   // and turns away a little
+        if (next === 'dark') {
+          // he likes the dark: "ahh..." (eyes closed, content smile, leans back), twinkles around him
+          dizzyStart = -1; blissStart = t; blissSide = Math.random() < 0.5 ? -1 : 1;
+          mood = 'bliss'; moodUntil = t + BLISS; afterMood = ['cozy', 2.2];
+          springs.squash[1] -= 1.2;                                  // a little stretch, like a contented sigh
+          fx.style.fontSize = (host.clientWidth * 0.1).toFixed(1) + 'px';
+          twinkles.classList.add('on');
+          clearTimeout(twinkleTimer); twinkleTimer = setTimeout(() => twinkles.classList.remove('on'), (BLISS + 0.3) * 1000);
+        } else {
+          // lights on: seeing stars for a couple of seconds, then squinting
+          blissStart = -1; twinkles.classList.remove('on');
+          dizzyStart = t; mood = 'dizzy'; moodUntil = t + DIZZY; afterMood = ['dazzled', 0.9];
+          squeezeUntil = t + 0.25;
+          springs.squash[1] += 2.4;
+          springs.yaw[1] += (Math.random() < 0.5 ? -1 : 1) * 2.2;
         }
       }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-      // Links: he looks at the one under the cursor and smiles (prouder for his own papers).
+      // Links: he looks at the one under the cursor and smiles.
       document.addEventListener('pointerover', (e) => {
         const el = e.target.closest && e.target.closest('a, button');
         if (!el || host.contains(el)) return;
         hoverEl = el;
-        hoverKind = el.closest('#all-pubs, .pub-list') ? 'proud' : 'interest';
+        hoverKind = 'interest';
         schedule();
       }, { passive: true });
       document.addEventListener('pointerout', (e) => {
@@ -1124,6 +817,7 @@
         setPixelRatio(r) { pixelRatio = r; renderer.setPixelRatio(r); renderer.setSize(size, size, false); render(); },
         snapshot() { render(); return canvas.toDataURL('image/png'); },
         doze() { lastActivity = -1e9; schedule(); },               // fall asleep now (testing)
+        dizzy() { dizzyStart = now(); mood = 'dizzy'; moodUntil = now() + DIZZY; afterMood = null; schedule(); },
         state: () => ({ asleep, sleepLevel, mood, hoverKind, blink: pose.blink, pitch: pose.pitch, smile: pose.smile, squint: pose.squint }),
       };
 

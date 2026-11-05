@@ -1,0 +1,237 @@
+/* Shared by every page of the site (index.html, experience.html, honors.html). */
+/* ============ Theme variables ============ */
+:root {
+  /* White & blue theme */
+  --bg: #ffffff;
+  --bg-alt: #eef3fc;
+  --text: #14264f;         /* navy blue body text */
+  --text-muted: #5a6b8c;   /* muted blue-grey */
+  --accent: #1d4ed8;       /* blue links / headings accents */
+  --accent-soft: #1d4ed81a;
+  --border: #d7e1f3;
+  --shadow: 0 2px 12px rgba(29, 78, 216, 0.08);
+}
+[data-theme="dark"] {
+  --bg: #0f1830;
+  --bg-alt: #172444;
+  --text: #dfe8fb;
+  --text-muted: #93a4c8;
+  --accent: #6aa0ff;
+  --accent-soft: #6aa0ff22;
+  --border: #26355c;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 4.5rem; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--text);
+  background: var(--bg);
+  transition: background 0.25s, color 0.25s;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ============ Nav ============ */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 0.7rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-brand { font-weight: 700; color: var(--text); }
+.nav-brand:hover { text-decoration: none; color: var(--accent); }
+.nav-links { display: flex; align-items: center; gap: 1.1rem; }
+.nav-links a { color: var(--text-muted); font-size: 0.95rem; }
+.nav-links a:hover, .nav-links a.active { color: var(--accent); text-decoration: none; }
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.15rem 0.35rem;
+  border-radius: 6px;
+}
+.theme-toggle:hover { color: var(--accent); background: var(--accent-soft); }
+
+/* ============ Layout ============ */
+.container {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+section { margin-top: 3rem; }
+
+h1 { font-size: 1.9rem; margin: 0 0 0.25rem; }
+h2 {
+  font-size: 1.3rem;
+  border-bottom: 2px solid var(--accent-soft);
+  padding-bottom: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.muted { color: var(--text-muted); font-size: 0.92rem; }
+
+/* ============ Hero ============ */
+.hero {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+.hero-text { flex: 1; min-width: 0; }
+.tagline { color: var(--text-muted); margin-top: 0; font-size: 1.02rem; text-wrap: balance; }
+p, .pub-title { text-wrap: pretty; }   /* no lone last words */
+.nowrap { white-space: nowrap; }
+/* a sub-heading inside the hero, lighter than the page sections */
+.interests h2 { font-size: 1.08rem; border-bottom: 0; padding-bottom: 0; margin: 1.3rem 0 0.3rem; }
+.interests p { margin: 0 0 1rem; }
+/* ============ Avatar (hero): 3D head built from the portrait (three.js); a still render of it is the fallback ============ */
+.hero-avatar-wrap { flex-shrink: 0; text-align: center; }
+.hero-avatar {
+  position: relative; width: 240px; height: 240px;
+  border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 1px var(--border), var(--shadow);
+  /* soft blue to match the site; also tried: grey #b8b8b5/#a8a8a5, sand #e9dcc8/#d2bfa3,
+     sage #d2ddd0/#adc1aa, navy #3a5285/#22345c */
+  background: radial-gradient(circle at 50% 36%, #cfdcf3, #a9bfe6 75%);
+}
+.hero-avatar img, .hero-avatar canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero-avatar img { object-fit: cover; transition: opacity 0.35s ease, filter 0.6s ease; }
+.hero-avatar canvas { opacity: 0; transition: opacity 0.35s ease, filter 0.6s ease; }
+/* dark theme: the lights go down for the avatar too (dusk-blue circle, face a little dimmer) */
+.hero-avatar::before { content: ""; position: absolute; inset: 0; opacity: 0; transition: opacity 0.6s ease;
+  background: radial-gradient(circle at 50% 36%, #4d6390, #2b3b60 75%); }
+[data-theme="dark"] .hero-avatar::before { opacity: 1; }
+[data-theme="dark"] .hero-avatar img, [data-theme="dark"] .hero-avatar canvas { filter: brightness(0.84); }
+.hero-avatar.is-3d canvas { opacity: 1; }
+.hero-avatar.is-3d img { opacity: 0; }
+.hero-avatar.is-3d { cursor: pointer; outline: none; }
+.hero-avatar:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+/* ============ Quote + Sisyphus ("absurdism corner") ============ */
+.absurd-corner { display: flex; align-items: center; justify-content: space-between; gap: 2rem; margin-top: 2.75rem; }
+.absurd-corner .intro-quote { margin: 0; flex: 1; }
+.sisyphus-mark { flex-shrink: 0; margin: 0; width: 210px; text-align: center; }
+.sisyphus-mark svg { width: 100%; height: auto; overflow: visible; display: block; cursor: pointer; }
+.sisyphus-mark #loop, .sisyphus-mark #fig-lines { stroke: var(--text); }
+.sisyphus-mark #fig-head { fill: var(--text); }
+.sisyphus-mark #rock circle { fill: var(--accent); }
+.mark-caption {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.mark-hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+/* ============ Intro quote ============ */
+.intro-quote {
+  max-width: 34rem;
+  margin: 2.75rem 0 0;
+  text-align: left;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 0;
+  padding-left: 1.1rem;
+  font-style: italic;
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.intro-quote cite {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  font-style: normal;
+}
+.contact-line { margin-top: 1.2rem; font-weight: 500; }
+
+/* ============ Publications ============ */
+.pub-list { padding-left: 1.25rem; }
+.pub-list li { margin-bottom: 1rem; }
+.pub-title { font-weight: 600; }
+.pub-authors { font-size: 0.94rem; }
+.pub-venue { font-size: 0.9rem; color: var(--text-muted); display: inline; }
+.pub-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 5px;
+  padding: 0.05rem 0.45rem;
+  margin-right: 0.4rem;
+  vertical-align: 1px;
+}
+.pub-links { display: inline; margin-left: 0.45rem; }   /* links on the venue line */
+.pub-links a { font-size: 0.85rem; margin-right: 0.45rem; }
+.pub-year-heading {
+  font-size: 1.15rem;
+  margin: 2rem 0 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ============ CV lists (experience / education) ============ */
+.cv-list { list-style: none; padding: 0; }
+.cv-list li { margin-bottom: 1.25rem; }
+.cv-head { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.cv-date { color: var(--text-muted); font-size: 0.88rem; white-space: nowrap; }
+.cv-sub { font-size: 0.94rem; }
+.cv-desc { font-size: 0.92rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+.honor-list { list-style: none; padding: 0; }
+.honor-list li {
+  padding: 0.3rem 0;
+  border-bottom: 1px dashed var(--border);
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* ============ Footer ============ */
+.footer {
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+/* ============ Responsive ============ */
+@media (max-width: 640px) {
+  .hero { flex-direction: column-reverse; align-items: center; text-align: left; }
+  .hero-avatar-wrap { margin: 1.25rem 0 0.5rem; }
+  .absurd-corner { flex-direction: column; align-items: stretch; }
+  .sisyphus-mark { align-self: center; }
+}
+@media (max-width: 520px) {
+  /* the name is right below in the hero; the bar keeps just the links */
+  .nav-brand { display: none; }
+  .nav-inner { justify-content: flex-end; }
+}
+
+/* Pages after the home page: the first section starts at the top. */
+.page > section:first-child { margin-top: 0; }

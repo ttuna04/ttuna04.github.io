@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Publications · Tuan M. Truong</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐟</text></svg>">
+  <meta name="description" content="Publications of Tuan M. Truong, CS PhD student at NUS: parameter-efficient fine-tuning, generalization, and more.">
+  <link rel="stylesheet" href="site.css?v=1">
+  <script src="site.js?v=1"></script>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-brand">Tuan M. Truong</a>
+      <div class="nav-links">
+        <a href="publications.html" class="active" aria-current="page">Publications</a>
+        <a href="experience.html">Experience</a>
+        <a href="honors.html">Honors</a>
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">◐</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container page">
+    <!-- ===================== Publications ===================== -->
+    <section id="publications">
+      <h2>Publications</h2>
+      <p class="muted">(*) denotes equal contribution.</p>
+      <div id="all-pubs"></div>
+    </section>
+
+    <footer class="footer">
+      <p>© 2026 Tuan M. Truong</p>
+    </footer>
+  </main>
+  <script>
+    // ============ Publication data ============
+    const PUBLICATIONS = [
+      { year: 2026, title: "Hypernetwork-Driven Low-Rank Adaptation Across Attention Heads",
+        authors: "T. Truong*, N. T. Diep*, L. Q. Dung*, T. Dinh, H. Nguyen, N. Ho",
+        venue: "Under review", badge: "Preprint", links: { arXiv: "https://arxiv.org/abs/2510.04295" } },
+      { year: 2026, title: "DoRAN: Stabilizing Weight-Decomposed Low-Rank Adaptation via Noise Injection and Auxiliary Networks",
+        authors: "T. Truong*, N. T. Diep*, H. Dang*, T. Dinh, H. Nguyen, N. Ho",
+        venue: "Under review", badge: "Preprint", links: { arXiv: "https://arxiv.org/abs/2510.04331" } },
+      { year: 2025, title: "RepLoRA: Reparameterizing Low-Rank Adaptation via the Perspective of Mixture of Experts",
+        authors: "T. Truong*, C. Nguyen*, H. Nguyen*, M. Le, N. Ho, T. Le",
+        venue: "International Conference on Machine Learning (ICML), 2025", badge: "ICML 2025", links: { arXiv: "https://arxiv.org/abs/2502.03044" } },
+      { year: 2025, title: "Improving Generalization with Flat Hilbert Bayesian Inference",
+        authors: "T. Truong*, Q. Tran*, N. Q. Pham, N. Ho, D. Phung, T. Le",
+        venue: "International Conference on Machine Learning (ICML), 2025", badge: "ICML 2025", links: { arXiv: "https://arxiv.org/abs/2410.04196" } },
+      { year: 2025, title: "Promoting Ensemble Diversity with Interactive Bayesian Distributional Robustness for Fine-tuning Foundation Models",
+        authors: "T. Truong*, N. Q. Pham*, Q. Tran, T. Nguyen, D. Phung, T. Le",
+        venue: "International Conference on Machine Learning (ICML), 2025", badge: "ICML 2025", links: { arXiv: "https://arxiv.org/abs/2506.07247" } },
+      { year: 2025, title: "Beyond Losses Reweighting: Empowering Multi-Task Learning via the Generalization Perspective",
+        authors: "H. Phan*, L. Tran*, Q. Tran, N. Tran, T. Truong, Q. Lei, N. Ho, D. Phung, T. Le",
+        venue: "International Conference on Computer Vision (ICCV), Highlight, 2025", badge: "ICCV 2025 · Highlight", links: { arXiv: "https://arxiv.org/abs/2211.13723" } },
+      { year: 2024, title: "Explicit Eigenvalue Regularization Improves Sharpness-Aware Minimization",
+        authors: "H. Luo, T. Truong, T. Pham, M. Harandi, D. Phung, T. Le",
+        venue: "Advances in Neural Information Processing Systems (NeurIPS), 2024", badge: "NeurIPS 2024", links: { arXiv: "https://arxiv.org/abs/2501.12666" } },
+      { year: 2024, title: "UNSAT Solver Synthesis via Monte Carlo Forest Search",
+        authors: "C. Cameron, J. Hartford, T. Lundy, T. Truong, A. Milligan, R. Chen, K. Leyton-Brown",
+        venue: "International Conference on the Integration of Constraint Programming, Artificial Intelligence, and Operations Research (CPAIOR), pp. 170–189, 2024", badge: "CPAIOR 2024", links: { arXiv: "https://arxiv.org/abs/2211.12581" } },
+      { year: 2022, title: "Expected Improvement for Contextual Bandits",
+        authors: "H. Tran-The, S. Gupta, S. Rana, T. Truong, L. Tran-Thanh, S. Venkatesh",
+        venue: "Advances in Neural Information Processing Systems (NeurIPS), 2022", badge: "NeurIPS 2022",
+        links: { paper: "https://proceedings.neurips.cc/paper_files/paper/2022/hash/8f0942c43fcfba4cc66a859b9fcb1bba-Abstract-Conference.html", OpenReview: "https://openreview.net/forum?id=uzn0WLCfuC_" } }
+    ];
+
+    // ============ Render publications, grouped by year ============
+    (function () {
+      const root = document.getElementById("all-pubs");
+      if (!root) return;
+
+      const highlightAuthors = (a) => a.replace(/T\. Truong(\*?)/g, "<strong>T. Truong$1</strong>");
+      const pubItemHTML = (p) => {
+        const links = Object.entries(p.links || {})
+          .map(([label, url]) => `<a href="${url}" target="_blank" rel="noopener">[${label}]</a>`)
+          .join(" ");
+        return `
+          <div class="pub-title">${p.title}</div>
+          <div class="pub-authors">${highlightAuthors(p.authors)}</div>
+          <div class="pub-venue"><span class="pub-badge">${p.badge}</span>${p.venue}</div>
+          ${links ? `<div class="pub-links">${links}</div>` : ""}`;
+      };
+
+      const byYear = new Map();
+      PUBLICATIONS.forEach((p) => {
+        if (!byYear.has(p.year)) byYear.set(p.year, []);
+        byYear.get(p.year).push(p);
+      });
+      [...byYear.keys()].sort((a, b) => b - a).forEach((year) => {
+        const h = document.createElement("h3");
+        h.className = "pub-year-heading";
+        h.textContent = year;
+        root.appendChild(h);
+        const ol = document.createElement("ol");
+        ol.className = "pub-list";
+        byYear.get(year).forEach((p) => {
+          const li = document.createElement("li");
+          li.innerHTML = pubItemHTML(p);
+          ol.appendChild(li);
+        });
+        root.appendChild(ol);
+      });
+    })();
+  </script>
+</body>
+</html>
