@@ -215,6 +215,8 @@
     // The face is avatar.png (img/avatar-head.png, img/avatar-neck.png) on a 3D head, reshaped to Tuan's own
     // proportions (SHAPE below). The white tee is modelled. He follows the cursor, smiles at hovered links,
     // reacts to pokes and to the light/dark switch, and dozes off when nothing happens for a while.
+    // With "reduce motion" on (OS setting) he runs in a gentle mode: the head holds still, only the face moves
+    // (eyes, lids, mouth, blush), and the stars, twinkles, "z z z" and "!" fade in place instead of moving.
     // If WebGL or the CDN is unavailable, the still image in #tuan-avatar (img/avatar-still.png) simply stays.
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
 
@@ -313,7 +315,7 @@
           const dx = u - JO[0], dy = v - JO[1], a = Math.atan2(dx, dy);
           const kf = Math.min(180, Math.max(0, a * 180 / Math.PI + 90)), k0 = Math.floor(kf), k1 = Math.min(180, k0 + 1);
           const rj = jawR[k0] + (jawR[k1] - jawR[k0]) * (kf - k0);
-          ext = Math.hypot(dx, dy) < rj + 48 * Math.cos(a) ** 2 ? 1 : 0;
+          ext = Math.hypot(dx, dy) < rj + 38 * Math.cos(a) ** 2 ? 1 : 0;
         }
         headExt[i] = ext;
       }
@@ -321,8 +323,9 @@
       let headZ = new Float32Array(hw * hh);
       for (let y = 0; y < hh; y++) for (let x = 0; x < hw; x++) {
         const i = y * hw + x, u = HEAD.x0 + x, v = HEAD.y0 + y;
-        // The lower face is a little flatter, so the chin stays round (not pointed) when the head turns.
-        let z = profile(headDist[i], 150, 2.4) * (1 - 0.30 * smoothstep(455, 545, v));
+        // The lower face is a little flatter, so the chin stays round (not pointed) when the head turns, and
+        // its sides rise more steeply from the outline (higher p), so the jaw stays round (not a V) in a turn.
+        let z = profile(headDist[i], 150, 2.4 + 2.0 * smoothstep(400, 500, v)) * (1 - 0.30 * smoothstep(455, 545, v));
         // Ears sit back at the sides of the head.
         const ear = Math.max(clamp01((262 - u) / 10), clamp01((u - 512) / 10)) * smoothstep(310, 326, v) * (1 - smoothstep(428, 446, v));
         z *= 1 - 0.6 * ear;
@@ -466,11 +469,12 @@
       const HOVER = { interest: { smile: 0.4, frown: 0, blush: 0.12, squint: 0.3 } };
       const live = { yaw: 0, pitch: 0, gazeX: 0, gazeY: 0, smile: 0, jaw: 0, frown: 0, blush: 0, squint: 0, blink: 0 };
       let pointer = null, lastMove = -1e9;
+      let headMotion = reduceMotion.matches ? 0 : 1;           // 0 = gentle mode: the head holds still
       let idle = { yaw: 0, pitch: 0 }, nextIdle = 0;
       let nextBlink = now() + rand(1.5, 4), blinkStart = -1, blinkTwice = false;
       let pokes = [], mood = null, moodUntil = 0, squeezeUntil = 0, shakeFrom = -1;
       // Sleep: after a while with nothing happening on the page he dozes off; any activity wakes him.
-      const SLEEP_AFTER = 35;                                   // seconds
+      const SLEEP_AFTER = 17.5;                                 // seconds
       let lastActivity = now(), asleep = false, sleepStart = 0, sleepLevel = 0;
       let hoverEl = null, hoverKind = null;
       // Cartoon moments: a dizzy spell (stars circle his head) and a startle when woken (a "!" pops up).
@@ -522,9 +526,11 @@
           }
           ({ yaw: yawT, pitch: pitchT } = idle);
         }
-        // The head turns part of the way; the eyes do the rest.
-        live.yaw = damp(live.yaw, clamp(yawT * 0.45, -0.24, 0.24), 5, dt);
-        live.pitch = damp(live.pitch, clamp(pitchT * 0.4, -0.14, 0.12), 5, dt);
+        // The head turns part of the way; the eyes do the rest (all of it in gentle mode).
+        const gentle = reduceMotion.matches;
+        headMotion = damp(headMotion, gentle ? 0 : 1, 4, dt);
+        live.yaw = damp(live.yaw, gentle ? 0 : clamp(yawT * 0.45, -0.24, 0.24), 5, dt);
+        live.pitch = damp(live.pitch, gentle ? 0 : clamp(pitchT * 0.4, -0.14, 0.12), 5, dt);
         live.gazeX = damp(live.gazeX, clamp(Math.tan(yawT - live.yaw) * 15, -7.5, 7.5), 20, dt);
         live.gazeY = damp(live.gazeY, clamp(Math.tan(pitchT - live.pitch) * 8, -2, 2), 20, dt);
 
@@ -567,16 +573,17 @@
         const be = blissEnv(t), bk = t - blissStart;
         const blissPitch = -0.07 * be, blissRoll = be * blissSide * (0.09 + 0.03 * Math.sin(2 * Math.PI * 0.6 * bk));
         const startle = startleFrom >= 0 && t - startleFrom < 0.6 ? 0.04 * Math.sin((t - startleFrom) * 55) * Math.exp(-(t - startleFrom) * 6) : 0;
+        const hm = headMotion;
         Object.assign(pose, {
-          yaw: live.yaw + springs.yaw[0] + shake + startle + 0.16 * de * Math.sin(w * dk),
-          pitch: live.pitch + springs.pitch[0] + bob + doze + 0.09 * de * Math.cos(w * dk) + blissPitch,
-          roll: -0.12 * (live.yaw + springs.yaw[0]) + 0.07 * sleepLevel + 0.11 * de * Math.sin(w * dk + 0.9) + blissRoll,
-          squash: springs.squash[0],
+          yaw: hm * (live.yaw + springs.yaw[0] + shake + startle + 0.16 * de * Math.sin(w * dk)),
+          pitch: hm * (live.pitch + springs.pitch[0] + bob + doze + 0.09 * de * Math.cos(w * dk) + blissPitch),
+          roll: hm * (-0.12 * (live.yaw + springs.yaw[0]) + 0.07 * sleepLevel + 0.11 * de * Math.sin(w * dk + 0.9) + blissRoll),
+          squash: hm * springs.squash[0],
           gazeX: live.gazeX * (1 - de) * (1 - be) + 6.5 * de * Math.cos(we * dk),
           gazeY: live.gazeY * (1 - de) * (1 - be) + 1.9 * de * Math.sin(we * dk),
           blink: live.blink,
           squint: live.squint, blush: live.blush, smile: live.smile, frown: live.frown, jaw: live.jaw,
-          dent: springs.dent[0],
+          dent: hm * springs.dent[0],
         });
         drawStars(t, de);
       }
@@ -638,8 +645,7 @@
           0% { transform: translate(0, 0); opacity: 0; }
           20% { opacity: 0.9; }
           100% { transform: translate(26px, -52px); opacity: 0; }
-        }
-        @media (prefers-reduced-motion: reduce) { .avatar-zzz { display: none; } }`;
+        }`;
       document.head.appendChild(zStyle);
 
       const fx = document.createElement('div');
@@ -685,7 +691,17 @@
         @keyframes avatar-tw {
           0%, 100% { transform: translate(-50%, -50%) scale(0.2) rotate(0deg); opacity: 0.2; }
           50% { transform: translate(-50%, -50%) scale(1) rotate(45deg); opacity: 1; }
-        }`;
+        }
+        /* gentle mode: the same overlays, fading in place */
+        @media (prefers-reduced-motion: reduce) {
+          .avatar-zzz.on span { animation-name: avatar-fade; }
+          .avatar-zzz span:nth-child(2) { left: 13px; bottom: 22px; }
+          .avatar-zzz span:nth-child(3) { left: 26px; bottom: 44px; }
+          .avatar-bang, .avatar-bang.on { transform: translate(-50%, 0) rotate(8deg); transition: opacity 0.15s ease; }
+          .avatar-twinkles span { transform: translate(-50%, -50%) scale(0.8); }
+          .avatar-twinkles.on span { animation-name: avatar-fade; animation-duration: 1.6s; }
+        }
+        @keyframes avatar-fade { 0%, 100% { opacity: 0; } 35%, 60% { opacity: 0.9; } }`;
       // Stars on a flat ellipse above the head; they follow the head's tilt and are fainter/smaller behind it.
       function drawStars(t, e) {
         if (e <= 0) {
@@ -697,7 +713,7 @@
         fx.style.fontSize = (S * 0.1).toFixed(1) + 'px';
         const L = 0.6 * S, px = 0.517 * S, py = 0.6875 * S;                 // pivot: top of the neck
         const cx = px - L * Math.sin(pose.roll), cy = py - L * Math.cos(pose.roll) * Math.cos(pose.pitch) + 0.02 * S;
-        const rx = 0.27 * S, ry = 0.065 * S, a0 = 2 * Math.PI * 1.1 * (t - dizzyStart);
+        const rx = 0.27 * S, ry = 0.065 * S, a0 = reduceMotion.matches ? 0.35 : 2 * Math.PI * 1.1 * (t - dizzyStart);
         stars.forEach((st, i) => {
           const a = a0 + (i * 2 * Math.PI) / stars.length, front = (Math.sin(a) + 1) / 2;
           const x = cx + rx * Math.cos(a), y = cy + ry * Math.sin(a), k = 0.65 + 0.45 * front;
@@ -712,7 +728,6 @@
         const next = document.documentElement.getAttribute('data-theme');
         if (next === theme) return;
         theme = next;
-        if (reduceMotion.matches) return;
         activity();
         const t = now();
         if (next === 'dark') {
@@ -767,7 +782,6 @@
       document.addEventListener('mouseout', (e) => { if (!e.relatedTarget) pointer = null; });
       window.addEventListener('blur', () => { pointer = null; });
       host.addEventListener('pointerdown', (e) => {
-        if (reduceMotion.matches) return;
         const hit = facePixelAt(e.clientX, e.clientY);
         const r = canvas.getBoundingClientRect();
         if (hit) poke(hit.u, hit.v, true);
@@ -777,10 +791,10 @@
       host.setAttribute('role', 'button');
       host.setAttribute('aria-label', "Tuan's 3D avatar. It follows your cursor; press Enter to poke it.");
       host.addEventListener('keydown', (e) => {
-        if ((e.key === 'Enter' || e.key === ' ') && !reduceMotion.matches) { e.preventDefault(); poke(387, 398, true); }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); poke(387, 398, true); }
       });
 
-      // ---------------- Loop: only while on screen, the tab is visible and motion is allowed ----------------
+      // ---------------- Loop: only while on screen and the tab is visible ----------------
       let raf = 0, lastT = 0, onScreen = true, frozen = false;
       function frame() {
         raf = 0;
@@ -791,19 +805,14 @@
         schedule();
       }
       function schedule() {
-        if (raf || frozen || !onScreen || document.hidden || reduceMotion.matches) return;
+        if (raf || frozen || !onScreen || document.hidden) return;
         lastT = performance.now() / 1000;
         raf = requestAnimationFrame(frame);
       }
-      function settle() {   // reduced motion: hold the rest pose
-        if (raf) { cancelAnimationFrame(raf); raf = 0; }
-        Object.assign(pose, REST);
-        render();
-      }
       new IntersectionObserver((entries) => { onScreen = entries[0].isIntersecting; schedule(); }).observe(host);
       document.addEventListener('visibilitychange', schedule);
-      reduceMotion.addEventListener('change', () => (reduceMotion.matches ? settle() : schedule()));
-      if (reduceMotion.matches) settle(); else schedule();
+      reduceMotion.addEventListener('change', schedule);
+      schedule();
 
       new ResizeObserver(() => {
         const s = host.clientWidth;
@@ -818,7 +827,7 @@
         snapshot() { render(); return canvas.toDataURL('image/png'); },
         doze() { lastActivity = -1e9; schedule(); },               // fall asleep now (testing)
         dizzy() { dizzyStart = now(); mood = 'dizzy'; moodUntil = now() + DIZZY; afterMood = null; schedule(); },
-        state: () => ({ asleep, sleepLevel, mood, hoverKind, blink: pose.blink, pitch: pose.pitch, smile: pose.smile, squint: pose.squint }),
+        state: () => ({ asleep, sleepLevel, mood, hoverKind, blink: pose.blink, pitch: pose.pitch, yaw: pose.yaw, roll: pose.roll, gazeX: pose.gazeX, smile: pose.smile, squint: pose.squint }),
       };
 
       // ---------------- Geometry helpers ----------------
@@ -1085,7 +1094,7 @@
       z += 7 * g(302, 394, 28, 26) + 7 * g(470, 394, 28, 26);                     // cheekbones
       z += 9 * g(387, 451, 27, 7) + 8 * g(387, 468, 23, 8) - 3 * g(387, 458, 32, 2); // lips
       z -= 4 * g(388, 485, 20, 5);                                                // under the lower lip
-      z += 9 * g(391, 511, 32, 14);                                               // chin (rounder than the portrait's)
+      z += 5 * g(391, 511, 32, 14);                                               // chin (rounder than the portrait's)
       z -= 2 * g(387, 436, 6, 6);                                                 // philtrum
       return z;
     }
