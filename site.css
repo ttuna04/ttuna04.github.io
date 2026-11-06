@@ -167,6 +167,31 @@ p, .pub-title { text-wrap: pretty; }   /* no lone last words */
   font-size: 0.85rem;
   font-style: normal;
 }
+/* The quote types itself out (index.html): the untyped rest keeps its place, so nothing reflows. */
+.tw-rest { color: transparent; }
+.tw-caret { position: relative; display: inline-block; width: 0; height: 1.15em; vertical-align: -0.2em; }
+.tw-caret::after {
+  content: "";
+  position: absolute;
+  left: 1px; top: 0; bottom: 0;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+  transform: skewX(-12deg);                 /* leans with the italic text */
+  animation: tw-blink 1.05s steps(1) infinite;
+  transition: opacity 0.6s ease;
+}
+cite .tw-caret::after { transform: none; }
+.tw-typing .tw-caret::after { animation: none; }   /* solid while typing, blinking while waiting */
+.tw-caret.tw-gone::after { animation: none; opacity: 0; }
+@keyframes tw-blink { 50% { opacity: 0; } }
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .contact-line { margin-top: 1.2rem; font-weight: 500; }
 
 /* ============ Publications ============ */

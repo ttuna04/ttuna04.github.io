@@ -19,7 +19,7 @@
     "alumniOf": { "@type": "Organization", "name": "University of British Columbia" }
   }
   </script>
-  <link rel="stylesheet" href="site.css?v=1">
+  <link rel="stylesheet" href="site.css?v=2">
   <script src="site.js?v=1"></script>
 </head>
 <body>
@@ -207,6 +207,75 @@
         if (document.hidden) { if (raf) { cancelAnimationFrame(raf); raf = null; last = null; } }
         else if (playing && !raf) { last = null; raf = requestAnimationFrame(tick); }
       });
+    })();
+
+    // ============ Quote: types itself out when it comes into view ============
+    (function () {
+      var q = document.querySelector('.intro-quote');
+      var cite = q && q.querySelector('cite');
+      if (!cite || !('IntersectionObserver' in window)) return;
+      var textNode = null;
+      for (var n = q.firstChild; n; n = n.nextSibling) {
+        if (n.nodeType === 3 && n.textContent.trim()) { textNode = n; break; }
+      }
+      if (!textNode) return;
+
+      // Each line becomes [typed][rest]: the rest is transparent but keeps its place. Screen readers get
+      // the full text from a hidden copy instead.
+      function prepare(parent, before, text) {
+        var shown = document.createElement('span'), done = document.createElement('span'), rest = document.createElement('span');
+        var full = document.createElement('span');
+        shown.setAttribute('aria-hidden', 'true');
+        rest.className = 'tw-rest';
+        rest.textContent = text;
+        shown.appendChild(done); shown.appendChild(rest);
+        full.className = 'sr-only';
+        full.textContent = text;
+        parent.insertBefore(shown, before); parent.insertBefore(full, before);
+        return { done: done, rest: rest, text: text, i: 0 };
+      }
+      var lines = [prepare(q, textNode, textNode.textContent.trim())];
+      q.removeChild(textNode);
+      var citeText = cite.textContent.trim();
+      cite.textContent = '';
+      lines.push(prepare(cite, null, citeText));
+
+      var caret = document.createElement('span');
+      caret.className = 'tw-caret';
+      caret.setAttribute('aria-hidden', 'true');
+      var k = 0;
+      lines[0].rest.parentNode.insertBefore(caret, lines[0].rest);
+
+      function step() {
+        var line = lines[k];
+        line.i++;
+        line.done.textContent = line.text.slice(0, line.i);
+        line.rest.textContent = line.text.slice(line.i);
+        var ch = line.text.charAt(line.i - 1);
+        if (line.i >= line.text.length) {
+          k++;
+          if (k < lines.length) {                    // on to the author's name, after a breath
+            q.classList.remove('tw-typing');
+            lines[k].rest.parentNode.insertBefore(caret, lines[k].rest);
+            setTimeout(function () { q.classList.add('tw-typing'); step(); }, 650);
+          } else {                                   // done: blink a few times, then fade away
+            q.classList.remove('tw-typing');
+            setTimeout(function () { caret.classList.add('tw-gone'); }, 3200);
+          }
+          return;
+        }
+        var wait = 32 + Math.random() * 40;          // a human-ish rhythm
+        if (ch === ',') wait += 280;
+        else if (ch === '.') wait += 420;
+        else if (ch === ' ') wait += 15;
+        setTimeout(step, wait);
+      }
+      var io = new IntersectionObserver(function (entries) {
+        if (!entries[0].isIntersecting) return;
+        io.disconnect();
+        setTimeout(function () { q.classList.add('tw-typing'); step(); }, 700);
+      }, { threshold: 0.6 });
+      io.observe(q);
     })();
 
   </script>
@@ -474,7 +543,7 @@
       let nextBlink = now() + rand(1.5, 4), blinkStart = -1, blinkTwice = false;
       let pokes = [], mood = null, moodUntil = 0, squeezeUntil = 0, shakeFrom = -1;
       // Sleep: after a while with nothing happening on the page he dozes off; any activity wakes him.
-      const SLEEP_AFTER = 17.5;                                 // seconds
+      const SLEEP_AFTER = 10;                                   // seconds
       let lastActivity = now(), asleep = false, sleepStart = 0, sleepLevel = 0;
       let hoverEl = null, hoverKind = null;
       // Cartoon moments: a dizzy spell (stars circle his head) and a startle when woken (a "!" pops up).
