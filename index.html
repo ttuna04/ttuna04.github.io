@@ -286,6 +286,7 @@
     // proportions (SHAPE below). The white tee is modelled. He follows the cursor, smiles at hovered links,
     // reacts to pokes and to the light/dark switch, and dozes off when nothing happens for a while.
     // He also talks: short lines in a bubble above his head (see Speech below).
+    // The body moves too: it breathes, turns and leans a little with the head, and reacts with him (see Body below).
     // With "reduce motion" on (OS setting) he runs in a gentle mode: the head holds still, only the face moves
     // (eyes, lids, mouth, blush), and the stars, twinkles, "z z z" and "!" fade in place instead of moving.
     // If WebGL or the CDN is unavailable, the still image in #tuan-avatar (img/avatar-still.png) simply stays.
@@ -489,24 +490,45 @@
       teeMesh.renderOrder = 1;
 
       // ---------------- Rig: the head turns about the top of the neck, the neck follows a little ----------------
+      // Everything rides on the body, which turns about a point low down (the hips, below the picture). The tee
+      // breathes about a point near the hem; the neck and head go up and down with its neckline.
+      const v3 = (u, v) => new THREE.Vector3(...world(u, v, 0));
+      const B0 = v3(397, 1050), T0 = v3(397, 900), H0 = v3(397, 560), N0 = v3(397, 660);
+      const BREATH_V = 578;                                     // the neckline: the neck and head rise with it
+      const bodyPivot = new THREE.Group();
+      bodyPivot.position.copy(B0);
+      const teeBreath = new THREE.Group();
+      teeBreath.position.copy(T0).sub(B0);
+      teeMesh.position.copy(T0).negate();
+      teeBreath.add(teeMesh);
       const headPivot = new THREE.Group();
-      headPivot.position.set(...world(397, 560, 0));
-      headMesh.position.copy(headPivot.position).negate();
+      headPivot.position.copy(H0).sub(B0);
+      headMesh.position.copy(H0).negate();
       headPivot.add(headMesh);
       const neckPivot = new THREE.Group();
-      neckPivot.position.set(...world(397, 660, 0));
-      neckMesh.position.copy(neckPivot.position).negate();
+      neckPivot.position.copy(N0).sub(B0);
+      neckMesh.position.copy(N0).negate();
       neckPivot.add(neckMesh);
-      scene.add(teeMesh, neckPivot, headPivot);
+      bodyPivot.add(teeBreath, neckPivot, headPivot);
+      scene.add(bodyPivot);
 
       // ---------------- Pose: everything the frame needs, all zero at rest ----------------
-      const REST = { yaw: 0, pitch: 0, roll: 0, squash: 0, gazeX: 0, gazeY: 0, blink: 0, squint: 0, blush: 0, smile: 0, frown: 0, jaw: 0, dent: 0, pokeX: 387, pokeY: 398 };
+      // Body: bYaw/bPitch/bRoll (rad), bY (portrait px, + = up), breath (how far the chest is stretched, 0 at rest).
+      const REST = { yaw: 0, pitch: 0, roll: 0, squash: 0, gazeX: 0, gazeY: 0, blink: 0, squint: 0, blush: 0, smile: 0, frown: 0, jaw: 0, dent: 0, pokeX: 387, pokeY: 398,
+        bYaw: 0, bPitch: 0, bRoll: 0, bY: 0, breath: 0 };
       const pose = { ...REST };
       const U = headMat.uniforms;
       function render() {
-        headPivot.rotation.set(pose.pitch, pose.yaw, pose.roll, 'YXZ');
+        bodyPivot.rotation.set(pose.bPitch, pose.bYaw, pose.bRoll, 'YXZ');
+        bodyPivot.position.set(B0.x, B0.y + pose.bY * PX, B0.z);
+        const k = pose.breath, lift = (900 - BREATH_V) * k * PX;
+        teeBreath.scale.set(1 + 0.35 * k, 1 + k, 1 + 0.5 * k);   // chest up and a touch wider
+        // the head and neck keep their own aim (pose.yaw/pitch are where they face), riding on the body
+        headPivot.position.set(H0.x - B0.x, H0.y - B0.y + lift, H0.z - B0.z);
+        headPivot.rotation.set(pose.pitch - pose.bPitch, pose.yaw - pose.bYaw, pose.roll, 'YXZ');
         headPivot.scale.set(1 + 0.25 * pose.squash, 1 - 0.5 * pose.squash, 1 + 0.25 * pose.squash);
-        neckPivot.rotation.set(pose.pitch * 0.3, pose.yaw * 0.4, 0, 'YXZ');
+        neckPivot.position.set(N0.x - B0.x, N0.y - B0.y + lift, N0.z - B0.z);
+        neckPivot.rotation.set(pose.pitch * 0.3 - pose.bPitch, pose.yaw * 0.4 - pose.bYaw, 0, 'YXZ');
         U.gaze.value.set(pose.gazeX, pose.gazeY);
         U.poke.value.set(pose.pokeX, pose.pokeY, pose.dent);
         for (const k of ['blink', 'squint', 'blush', 'smile', 'frown', 'jaw']) U[k].value = pose[k];
@@ -524,7 +546,8 @@
       const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
       const damp = (x, target, rate, dt) => x + (target - x) * (1 - Math.exp(-rate * dt));
       // Damped springs for the dent, the recoil and the squash: [value, velocity, stiffness, damping].
-      const springs = { dent: [0, 0, 260, 12], yaw: [0, 0, 90, 11], pitch: [0, 0, 90, 11], squash: [0, 0, 300, 13] };
+      const springs = { dent: [0, 0, 260, 12], yaw: [0, 0, 90, 11], pitch: [0, 0, 90, 11], squash: [0, 0, 300, 13],
+        lift: [0, 0, 70, 9], sway: [0, 0, 40, 6] };              // the body: shoulders up/down (px), lean (rad)
       const MOODS = {
         neutral: { smile: 0, jaw: 0, frown: 0, blush: 0, squint: 0 },
         smile: { smile: 0.85, jaw: 0, frown: 0, blush: 0.5, squint: 0.55 },
@@ -539,6 +562,8 @@
       // A link under the cursor gets an interested smile.
       const HOVER = { interest: { smile: 0.4, frown: 0, blush: 0.12, squint: 0.3 } };
       const live = { yaw: 0, pitch: 0, gazeX: 0, gazeY: 0, smile: 0, jaw: 0, frown: 0, blush: 0, squint: 0, blink: 0 };
+      const body = { yaw: 0, lean: 0, tense: 0, bounce: 0 };
+      let breathPhase = 0;
       let pointer = null, lastMove = -1e9;
       let headMotion = reduceMotion.matches ? 0 : 1;           // 0 = gentle mode: the head holds still
       let idle = { yaw: 0, pitch: 0 }, nextIdle = 0;
@@ -646,9 +671,12 @@
           s[0] += s[1] * dt;
         }
         const shake = shakeFrom >= 0 && t - shakeFrom < 1.6 ? 0.13 * Math.sin((t - shakeFrom) * 20) * Math.exp(-(t - shakeFrom) * 2.4) : 0;
-        const bob = 0.008 * Math.sin(t * 1.7) * (1 - sleepLevel) + (mood === 'laugh' ? 0.03 * Math.sin(t * 15) : 0) + (mood === 'annoyed' ? 0.05 : 0);
+        // Breathing: one rhythm for the chest, the shoulders and the head; slower and deeper when asleep.
+        breathPhase += dt * 2 * Math.PI / (4.2 + 1.4 * sleepLevel);
+        const breath = Math.sin(breathPhase);                                            // + = breathing in
+        const bob = -0.006 * breath * (1 - sleepLevel) + (mood === 'laugh' ? 0.03 * Math.sin(t * 15) : 0) + (mood === 'annoyed' ? 0.05 : 0);
         // asleep: the head sinks forward and tilts a little, rising and falling with slow breaths
-        const doze = sleepLevel * (0.17 + 0.014 * Math.sin(t * 1.25));   // + = forward
+        const doze = sleepLevel * (0.17 - 0.014 * breath);   // + = forward
         live.gazeX *= 1 - sleepLevel; live.gazeY *= 1 - sleepLevel;
 
         // dizzy: the head goes round in circles and the eyes roll the other way
@@ -657,6 +685,13 @@
         const blissPitch = -0.07 * be, blissRoll = be * blissSide * (0.09 + 0.03 * Math.sin(2 * Math.PI * 0.6 * bk));
         const startle = startleFrom >= 0 && t - startleFrom < 0.6 ? 0.04 * Math.sin((t - startleFrom) * 55) * Math.exp(-(t - startleFrom) * 6) : 0;
         const hm = headMotion;
+        // Body: turns a third of the way with the head and leans a little towards what he looks at, shifts its
+        // weight now and then, slumps when he dozes off, tenses up when annoyed and bounces when he laughs.
+        body.yaw = damp(body.yaw, 0.3 * live.yaw, 3, dt);
+        body.lean = damp(body.lean, -0.08 * live.yaw, 2.5, dt);
+        body.tense = damp(body.tense, mood === 'annoyed' ? 1 : 0, 6, dt);
+        body.bounce = damp(body.bounce, mood === 'laugh' ? 1 : 0, 8, dt);
+        const weight = 0.011 * Math.sin(t * 0.57) * (1 - sleepLevel);
         Object.assign(pose, {
           yaw: hm * (live.yaw + springs.yaw[0] + shake + startle + 0.16 * de * Math.sin(w * dk)),
           pitch: hm * (live.pitch + springs.pitch[0] + bob + doze + 0.09 * de * Math.cos(w * dk) + blissPitch),
@@ -667,6 +702,11 @@
           blink: live.blink,
           squint: live.squint, blush: live.blush, smile: live.smile, frown: live.frown, jaw: live.jaw,
           dent: hm * springs.dent[0],
+          bYaw: hm * (body.yaw + 0.25 * springs.yaw[0] + 0.3 * shake + 0.05 * de * Math.sin(w * dk)),
+          bPitch: hm * (0.035 * sleepLevel - 0.035 * be + 0.12 * springs.pitch[0]),          // + = forward
+          bRoll: hm * (body.lean + weight + 0.014 * sleepLevel + springs.sway[0] + 0.035 * de * Math.sin(w * dk + 0.3) + 0.25 * blissRoll),
+          bY: hm * (springs.lift[0] + 3.5 * body.tense - 7 * sleepLevel + body.bounce * 2.4 * (1 + Math.sin(t * 15))),
+          breath: hm * (0.013 + 0.008 * sleepLevel) * breath,
         });
         drawStars(t, de);
       }
@@ -682,12 +722,14 @@
         springs.yaw[1] -= clamp((u - 387) / 120, -1, 1) * 2.2;     // recoil away from the finger
         springs.pitch[1] -= clamp((v - 400) / 160, -1, 1) * 1.6;
         springs.squash[1] += 2.2;
+        springs.lift[1] -= 45;                                     // the shoulders flinch
+        springs.sway[1] += clamp((u - 387) / 120, -1, 1) * 0.16;   // and lean away from the finger
         squeezeUntil = t + 0.22;
-        if (pokes.length >= 6) { mood = 'annoyed'; moodUntil = t + 2.4; shakeFrom = t; pokes = []; if (!wasAsleep) say('annoyed'); }
+        if (pokes.length >= 6) { mood = 'annoyed'; moodUntil = t + 2.4; shakeFrom = t; pokes = []; if (!wasAsleep) say('annoyed', false); }
         else {
           mood = pokes.length >= 3 ? 'laugh' : 'smile'; moodUntil = t + 1.9;
-          if (!wasAsleep && pokes.length === 1) say('poke');
-          else if (!wasAsleep && pokes.length === 3) say('laugh');
+          if (!wasAsleep && pokes.length === 1) say('poke', false);
+          else if (!wasAsleep && pokes.length === 3) say('laugh', false);
         }
         lastMove = Math.max(lastMove, t - 4);   // keep looking at the visitor for a moment
         schedule();
@@ -702,12 +744,13 @@
           startleFrom = t;
           springs.pitch[1] -= 7.5;            // head jerks up and back
           springs.squash[1] -= 4.6;           // shoots up tall
+          springs.lift[1] += 110;             // shoulders jump
           springs.yaw[1] += (Math.random() < 0.5 ? -1 : 1) * 1.2;
           live.blink = 0; sleepLevel = 0.35;  // eyes snap open, head comes up fast
           mood = 'startled'; moodUntil = t + 0.75; afterMood = ['smile', 1.2];   // "oh!" ... "hi :)"
           bang.classList.remove('on'); void bang.offsetWidth; bang.classList.add('on');
           clearTimeout(bangTimer); bangTimer = setTimeout(() => bang.classList.remove('on'), 950);
-          say('wake');
+          say('wake', false);
         }
         schedule();
       }
@@ -837,7 +880,7 @@
       bubble.className = 'avatar-say';
       bubble.setAttribute('aria-hidden', 'true');
       host.parentElement.appendChild(bubble);
-      function say(group) {
+      function say(group, perk = true) {                      // perk: a little lift (not for reactions: they move him already)
         const left = LINES[group].filter((l) => !said.has(l));
         if (!left.length) return;
         const line = left[Math.floor(Math.random() * left.length)], t = now();
@@ -847,6 +890,7 @@
         lastSaid = t; bubbleUntil = t + secs;
         talkUntil = t + Math.min(1.5, 0.06 * line.length);
         lookUntil = asleep ? 0 : t + LOOK;                      // eyes on the visitor, then back to the cursor
+        if (perk && !asleep) springs.lift[1] += 30;             // and perks up a little
         bubble.textContent = line;
         bubble.classList.remove('on'); void bubble.offsetWidth; bubble.classList.add('on');
         clearTimeout(bubbleTimer); bubbleTimer = setTimeout(() => bubble.classList.remove('on'), secs * 1000);
@@ -890,8 +934,11 @@
         starsShown = true;
         const S = host.clientWidth;
         fx.style.fontSize = (S * 0.1).toFixed(1) + 'px';
-        const L = 0.6 * S, px = 0.517 * S, py = 0.6875 * S;                 // pivot: top of the neck
-        const cx = px - L * Math.sin(pose.roll), cy = py - L * Math.cos(pose.roll) * Math.cos(pose.pitch) + 0.02 * S;
+        // pivot: top of the neck, carried by the body (it leans about a point 490 px lower)
+        const q = S / 768, roll = pose.roll + pose.bRoll;
+        const L = 0.6 * S, px = 0.517 * S - 490 * q * Math.sin(pose.bRoll);
+        const py = 0.6875 * S - q * (pose.bY + (900 - BREATH_V) * pose.breath);
+        const cx = px - L * Math.sin(roll), cy = py - L * Math.cos(roll) * Math.cos(pose.pitch) + 0.02 * S;
         const rx = 0.27 * S, ry = 0.065 * S, a0 = reduceMotion.matches ? 0.35 : 2 * Math.PI * 1.1 * (t - dizzyStart);
         stars.forEach((st, i) => {
           const a = a0 + (i * 2 * Math.PI) / stars.length, front = (Math.sin(a) + 1) / 2;
@@ -909,12 +956,13 @@
         theme = next;
         activity();
         const t = now();
-        say(next === 'dark' ? 'dark' : 'light');
+        say(next === 'dark' ? 'dark' : 'light', false);
         if (next === 'dark') {
           // he likes the dark: "ahh..." (eyes closed, content smile, leans back), twinkles around him
           dizzyStart = -1; blissStart = t; blissSide = Math.random() < 0.5 ? -1 : 1;
           mood = 'bliss'; moodUntil = t + BLISS; afterMood = ['cozy', 2.2];
           springs.squash[1] -= 1.2;                                  // a little stretch, like a contented sigh
+          springs.lift[1] += 55;                                     // a deep breath in, then he sinks back
           fx.style.fontSize = (host.clientWidth * 0.1).toFixed(1) + 'px';
           twinkles.classList.add('on');
           clearTimeout(twinkleTimer); twinkleTimer = setTimeout(() => twinkles.classList.remove('on'), (BLISS + 0.3) * 1000);
@@ -924,6 +972,7 @@
           dizzyStart = t; mood = 'dizzy'; moodUntil = t + DIZZY; afterMood = ['dazzled', 0.9];
           squeezeUntil = t + 0.25;
           springs.squash[1] += 2.4;
+          springs.lift[1] -= 50;                                     // recoils from the glare
           springs.yaw[1] += (Math.random() < 0.5 ? -1 : 1) * 2.2;
         }
       }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -1019,7 +1068,8 @@
         dizzy() { dizzyStart = now(); mood = 'dizzy'; moodUntil = now() + DIZZY; afterMood = null; schedule(); },
         say: (group) => say(group),
         speech: () => ({ text: bubble.textContent, on: bubble.classList.contains('on'), queue: queue.map((q) => q[0]), said: [...said] }),
-        state: () => ({ asleep, sleepLevel, mood, hoverKind, blink: pose.blink, pitch: pose.pitch, yaw: pose.yaw, roll: pose.roll, gazeX: pose.gazeX, smile: pose.smile, squint: pose.squint }),
+        state: () => ({ asleep, sleepLevel, mood, hoverKind, blink: pose.blink, pitch: pose.pitch, yaw: pose.yaw, roll: pose.roll, gazeX: pose.gazeX, smile: pose.smile, squint: pose.squint,
+          bYaw: pose.bYaw, bPitch: pose.bPitch, bRoll: pose.bRoll, bY: pose.bY, breath: pose.breath }),
       };
 
       // ---------------- Geometry helpers ----------------
