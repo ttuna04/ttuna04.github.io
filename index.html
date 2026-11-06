@@ -830,7 +830,7 @@
       const GAP = 8;                                            // seconds between lines he says on his own
       const said = new Set();
       let lastSaid = now(), bubbleUntil = 0, talkUntil = 0, bubbleTimer = 0, nextIdleLine = now() + 30;
-      const LOOK = 1.2;                                         // seconds he looks at the visitor when he says something
+      const LOOK = 2.0;                                         // seconds he looks at the visitor when he says something
       let lookUntil = 0;
       const queue = [];                                         // [group, expires at]
       const bubble = document.createElement('div');
@@ -843,7 +843,7 @@
         const line = left[Math.floor(Math.random() * left.length)], t = now();
         said.add(line);
         clearTimeout(hoverTimer);                               // a pending hover line would be stale now
-        const secs = Math.min(4.5, 1.6 + 0.055 * line.length);
+        const secs = Math.min(5.5, 2.5 + 0.06 * line.length);
         lastSaid = t; bubbleUntil = t + secs;
         talkUntil = t + Math.min(1.5, 0.06 * line.length);
         lookUntil = asleep ? 0 : t + LOOK;                      // eyes on the visitor, then back to the cursor
