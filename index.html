@@ -260,6 +260,7 @@
             setTimeout(function () { q.classList.add('tw-typing'); step(); }, 650);
           } else {                                   // done: blink a few times, then fade away
             q.classList.remove('tw-typing');
+            document.dispatchEvent(new Event('quote-typed'));   // the avatar has something to say about it
             setTimeout(function () { caret.classList.add('tw-gone'); }, 3200);
           }
           return;
@@ -284,6 +285,7 @@
     // The face is avatar.png (img/avatar-head.png, img/avatar-neck.png) on a 3D head, reshaped to Tuan's own
     // proportions (SHAPE below). The white tee is modelled. He follows the cursor, smiles at hovered links,
     // reacts to pokes and to the light/dark switch, and dozes off when nothing happens for a while.
+    // He also talks: short lines in a bubble above his head (see Speech below).
     // With "reduce motion" on (OS setting) he runs in a gentle mode: the head holds still, only the face moves
     // (eyes, lids, mouth, blush), and the stars, twinkles, "z z z" and "!" fade in place instead of moving.
     // If WebGL or the CDN is unavailable, the still image in #tuan-avatar (img/avatar-still.png) simply stays.
@@ -575,11 +577,21 @@
       function update(t, dt) {
         // Where to look: the cursor if it moved in the last few seconds, otherwise glance around.
         let yawT, pitchT;
-        if (!asleep && t - lastActivity > SLEEP_AFTER && !mood && !hoverEl) { asleep = true; sleepStart = t; }
+        if (!asleep && t - lastActivity > SLEEP_AFTER && !mood && !hoverEl && t >= bubbleUntil) { asleep = true; sleepStart = t; }
         sleepLevel = damp(sleepLevel, asleep ? 1 : 0, asleep ? 0.9 : 9, dt);
-        zzz.classList.toggle('on', asleep && t - sleepStart > 4.5);
+        const zOn = asleep && t - sleepStart > 4.5;
+        if (zOn && !zzz.classList.contains('on')) say('sleep');
+        zzz.classList.toggle('on', zOn);
+        // lines he says on his own: one at a time, GAP s apart, never while asleep
+        if (!asleep && queue.length && t - lastSaid >= GAP && t >= bubbleUntil) {
+          const [pool, until] = queue.shift();
+          if (t < until) say(pool);
+        }
+        if (!asleep && !queue.length && t > nextIdleLine) { sayLater('idle'); nextIdleLine = t + rand(45, 70); }
         if (asleep) {
           yawT = 0; pitchT = 0;
+        } else if (t < lookUntil) {
+          yawT = 0; pitchT = 0;                                 // saying something: a quick look at the visitor
         } else if (pointer && t - lastMove < 6) {
           const r = canvas.getBoundingClientRect();
           const ex = r.left + r.width * 0.5, ey = r.top + r.height * ((330 - 32) / 768);   // between the eyes
@@ -623,9 +635,11 @@
         }
         const m = mood ? MOODS[mood] : (hoverKind && !asleep ? HOVER[hoverKind] : MOODS.neutral);
         for (const k of ['smile', 'frown', 'blush', 'squint']) live[k] = damp(live[k], m[k], mood ? 9 : hoverKind ? 6 : 3, dt);
+        const talking = t < talkUntil && !asleep;
         const jawT = mood === 'laugh' ? 0.62 + 0.38 * Math.sin(t * 15)                    // "ha-ha-ha"
-          : mood === 'startled' ? 0.45 : mood === 'dizzy' ? 0.2 : 0;
-        live.jaw = damp(live.jaw, jawT, 14, dt);
+          : mood === 'startled' ? 0.45 : mood === 'dizzy' ? 0.2
+          : talking ? 0.4 * Math.abs(Math.sin(t * 9)) : 0;                                // syllables
+        live.jaw = damp(live.jaw, jawT, talking ? 30 : 14, dt);
 
         for (const s of Object.values(springs)) {                                        // semi-implicit Euler
           s[1] += (-s[2] * s[0] - s[3] * s[1]) * dt;
@@ -658,6 +672,7 @@
       }
 
       function poke(u, v, onFace) {
+        const wasAsleep = asleep;
         activity();
         const t = now();
         dizzyStart = -1; blissStart = -1; afterMood = null; twinkles.classList.remove('on');
@@ -668,8 +683,12 @@
         springs.pitch[1] -= clamp((v - 400) / 160, -1, 1) * 1.6;
         springs.squash[1] += 2.2;
         squeezeUntil = t + 0.22;
-        if (pokes.length >= 6) { mood = 'annoyed'; moodUntil = t + 2.4; shakeFrom = t; pokes = []; }
-        else { mood = pokes.length >= 3 ? 'laugh' : 'smile'; moodUntil = t + 1.9; }
+        if (pokes.length >= 6) { mood = 'annoyed'; moodUntil = t + 2.4; shakeFrom = t; pokes = []; if (!wasAsleep) say('annoyed'); }
+        else {
+          mood = pokes.length >= 3 ? 'laugh' : 'smile'; moodUntil = t + 1.9;
+          if (!wasAsleep && pokes.length === 1) say('poke');
+          else if (!wasAsleep && pokes.length === 3) say('laugh');
+        }
         lastMove = Math.max(lastMove, t - 4);   // keep looking at the visitor for a moment
         schedule();
       }
@@ -688,11 +707,18 @@
           mood = 'startled'; moodUntil = t + 0.75; afterMood = ['smile', 1.2];   // "oh!" ... "hi :)"
           bang.classList.remove('on'); void bang.offsetWidth; bang.classList.add('on');
           clearTimeout(bangTimer); bangTimer = setTimeout(() => bang.classList.remove('on'), 950);
+          say('wake');
         }
         schedule();
       }
       for (const ev of ['keydown', 'scroll', 'wheel', 'touchstart']) window.addEventListener(ev, activity, { passive: true });
-      document.addEventListener('visibilitychange', () => { if (!document.hidden) activity(); });
+      let hiddenAt = -1;
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) { hiddenAt = now(); return; }
+        const wasAsleep = asleep;
+        activity();
+        if (!wasAsleep && hiddenAt > 0 && now() - hiddenAt > 4) say('welcome');
+      });
 
       // "z z z" while he sleeps (outside the circle, top right)
       const zzz = document.createElement('div');
@@ -771,6 +797,90 @@
           .avatar-twinkles.on span { animation-name: avatar-fade; animation-duration: 1.6s; }
         }
         @keyframes avatar-fade { 0%, 100% { opacity: 0; } 35%, 60% { opacity: 0.9; } }`;
+
+      // ---------------- Speech: short lines in a bubble above his head ----------------
+      // Reactions to what the visitor does are said right away; lines he says on his own (hello, the time of
+      // day, the quote, idle chatter) wait in a queue, GAP s apart. No line is said twice in a visit: a used-up
+      // group just goes quiet.
+      const LINES = {
+        hello: ["Hi, I'm Tuan! You can call me Tuna \u{1F41F}"],
+        back: ["Oh, you're back! \u{1F44B}"],
+        xinchao: ['Xin ch\u00e0o! \u{1F44B}'],
+        morning: ['Good morning! \u2600\uFE0F'],
+        late: ['Up late too? \u{1F319}'],
+        poke: ['Hey!', 'Boop! \u{1F449}', 'Hi there!'],
+        laugh: ['Haha, that tickles!', 'Hehe, stop it!'],
+        annoyed: ['Okay, okay, stop poking! \u{1F624}', 'Seriously? \u{1F624}'],
+        dark: ['Ahh\u2026 much better \u{1F60C}', 'Yes, the dark \u{1F319}', 'Back in my natural habitat \u{1F41F}'],
+        light: ['Too bright!! \u{1F635}', 'My eyes!! \u{1F635}', 'Ugh, the lights\u2026'],
+        sleep: ['zzz\u2026 self-improving in my sleep\u2026', 'zzz\u2026 just one more epoch\u2026'],
+        wake: ["I wasn't sleeping!", "Huh? I'm up, I'm up!"],
+        welcome: ['Welcome back!', 'Oh hi again!'],
+        quote: ['One must imagine Sisyphus happy.'],
+        idle: ['Fun fact: tuna never stop swimming \u{1F41F}', 'One must imagine Sisyphus happy.',
+          'Self-evolving agents are my thing \u{1F916}', 'Currently interning at Apodex \u2728'],
+        pubs: ['My papers live here \u{1F4C4}'],
+        scholar: ['Citations welcome \u{1F604}'],
+        cv: ['The long version of me'],
+        email: ['Say hi anytime \u2709\uFE0F'],
+        advisor: ['My advisor \u{1F64F}'],
+        lightsOff: ['Lights off, please? \u{1F319}'],
+        keepDark: ['Please keep it dark \u{1F97A}'],
+      };
+      const GAP = 8;                                            // seconds between lines he says on his own
+      const said = new Set();
+      let lastSaid = now(), bubbleUntil = 0, talkUntil = 0, bubbleTimer = 0, nextIdleLine = now() + 30;
+      const LOOK = 1.2;                                         // seconds he looks at the visitor when he says something
+      let lookUntil = 0;
+      const queue = [];                                         // [group, expires at]
+      const bubble = document.createElement('div');
+      bubble.className = 'avatar-say';
+      bubble.setAttribute('aria-hidden', 'true');
+      host.parentElement.appendChild(bubble);
+      function say(group) {
+        const left = LINES[group].filter((l) => !said.has(l));
+        if (!left.length) return;
+        const line = left[Math.floor(Math.random() * left.length)], t = now();
+        said.add(line);
+        clearTimeout(hoverTimer);                               // a pending hover line would be stale now
+        const secs = Math.min(4.5, 1.6 + 0.055 * line.length);
+        lastSaid = t; bubbleUntil = t + secs;
+        talkUntil = t + Math.min(1.5, 0.06 * line.length);
+        lookUntil = asleep ? 0 : t + LOOK;                      // eyes on the visitor, then back to the cursor
+        bubble.textContent = line;
+        bubble.classList.remove('on'); void bubble.offsetWidth; bubble.classList.add('on');
+        clearTimeout(bubbleTimer); bubbleTimer = setTimeout(() => bubble.classList.remove('on'), secs * 1000);
+        schedule();
+      }
+      const sayLater = (group) => { queue.push([group, now() + 20]); schedule(); };
+      // Links that get a line of their own (said once, after the cursor rests on the link a moment)
+      const hoverLine = (el) => {
+        if (el.id === 'theme-toggle') return theme === 'dark' ? 'keepDark' : 'lightsOff';
+        const h = el.getAttribute('href') || '';
+        if (h.startsWith('mailto:')) return 'email';
+        if (h.includes('scholar.google')) return 'scholar';
+        if (h.endsWith('.pdf')) return 'cv';
+        if (h.includes('publications.html')) return 'pubs';
+        if (h.includes('yanshuicheng')) return 'advisor';
+        return null;
+      };
+      let hoverTimer = 0;
+      document.addEventListener('pointerdown', () => clearTimeout(hoverTimer), { passive: true });   // clicked, not hovering
+      document.addEventListener('quote-typed', () => sayLater('quote'));
+      zStyle.textContent += `
+        .avatar-say { position: absolute; left: 36%; top: 12%; z-index: 3; width: max-content; max-width: 220px;
+          padding: 0.42rem 0.72rem; border-radius: 14px; background: var(--bg); color: var(--text);
+          border: 1px solid var(--border); box-shadow: 0 4px 14px rgba(20, 38, 79, 0.16);
+          font-size: 0.84rem; line-height: 1.35; font-weight: 500; text-align: center; text-wrap: balance; pointer-events: none;
+          opacity: 0; transform: translate(-50%, calc(-100% + 6px)) scale(0.9); transform-origin: 50% 100%;
+          transition: opacity 0.18s ease, transform 0.28s cubic-bezier(0.3, 1.6, 0.5, 1); }
+        .avatar-say.on { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+        .avatar-say::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 10px; height: 10px;
+          background: var(--bg); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+          transform: translateX(-50%) rotate(45deg); }
+        @media (prefers-reduced-motion: reduce) {
+          .avatar-say, .avatar-say.on { transform: translate(-50%, -100%); transition: opacity 0.2s ease; }
+        }`;
       // Stars on a flat ellipse above the head; they follow the head's tilt and are fainter/smaller behind it.
       function drawStars(t, e) {
         if (e <= 0) {
@@ -799,6 +909,7 @@
         theme = next;
         activity();
         const t = now();
+        say(next === 'dark' ? 'dark' : 'light');
         if (next === 'dark') {
           // he likes the dark: "ahh..." (eyes closed, content smile, leans back), twinkles around him
           dizzyStart = -1; blissStart = t; blissSide = Math.random() < 0.5 ? -1 : 1;
@@ -823,10 +934,13 @@
         if (!el || host.contains(el)) return;
         hoverEl = el;
         hoverKind = 'interest';
+        clearTimeout(hoverTimer);
+        const key = e.pointerType === 'mouse' ? hoverLine(el) : null;
+        if (key) hoverTimer = setTimeout(() => { const k = hoverEl === el && hoverLine(el); if (k) say(k); }, 350);
         schedule();
       }, { passive: true });
       document.addEventListener('pointerout', (e) => {
-        if (hoverEl && (!e.relatedTarget || !hoverEl.contains(e.relatedTarget))) { hoverEl = null; hoverKind = null; }
+        if (hoverEl && (!e.relatedTarget || !hoverEl.contains(e.relatedTarget))) { hoverEl = null; hoverKind = null; clearTimeout(hoverTimer); }
       }, { passive: true });
 
       // ---------------- Input ----------------
@@ -883,6 +997,13 @@
       reduceMotion.addEventListener('change', schedule);
       schedule();
 
+      let visited = false;
+      try { visited = localStorage.getItem('tuna-visited') === '1'; localStorage.setItem('tuna-visited', '1'); } catch (e) {}
+      setTimeout(() => say(!visited ? 'hello' : Math.random() < 0.25 ? 'xinchao' : 'back'), 1200);
+      const hour = new Date().getHours();
+      if (hour >= 5 && hour < 11) sayLater('morning');
+      else if (hour >= 23 || hour < 4) sayLater('late');
+
       new ResizeObserver(() => {
         const s = host.clientWidth;
         if (s && s !== size) { size = s; renderer.setSize(size, size, false); render(); }
@@ -896,6 +1017,8 @@
         snapshot() { render(); return canvas.toDataURL('image/png'); },
         doze() { lastActivity = -1e9; schedule(); },               // fall asleep now (testing)
         dizzy() { dizzyStart = now(); mood = 'dizzy'; moodUntil = now() + DIZZY; afterMood = null; schedule(); },
+        say: (group) => say(group),
+        speech: () => ({ text: bubble.textContent, on: bubble.classList.contains('on'), queue: queue.map((q) => q[0]), said: [...said] }),
         state: () => ({ asleep, sleepLevel, mood, hoverKind, blink: pose.blink, pitch: pose.pitch, yaw: pose.yaw, roll: pose.roll, gazeX: pose.gazeX, smile: pose.smile, squint: pose.squint }),
       };
 
