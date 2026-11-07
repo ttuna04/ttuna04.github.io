@@ -19,8 +19,13 @@
     "alumniOf": { "@type": "Organization", "name": "University of British Columbia" }
   }
   </script>
-  <link rel="stylesheet" href="site.css?v=2">
+  <link rel="stylesheet" href="site.css?v=3">
   <script src="site.js?v=1"></script>
+  <!-- the 3D avatar's parts download alongside the page -->
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.min.js">
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.core.min.js">
+  <link rel="preload" as="image" href="img/avatar-head.png">
+  <link rel="preload" as="image" href="img/avatar-neck.png">
 </head>
 <body>
   <nav class="nav">
@@ -64,6 +69,32 @@
           <img src="img/avatar-still.png" alt="Portrait of Tuan Truong" width="240" height="240">
         </div>
       </div>
+      <script>
+        // The greeting, said as soon as the page opens (the 3D head, still loading, joins in when it's ready).
+        (function () {
+          var wrap = document.querySelector('.hero-avatar-wrap');
+          var visited = false;
+          try { visited = localStorage.getItem('tuna-visited') === '1'; localStorage.setItem('tuna-visited', '1'); } catch (e) {}
+          var line = !visited ? "Hi, I'm Tuan! You can call me Tuna \u{1F41F}"
+            : Math.random() < 0.25 ? 'Xin ch\u00e0o! \u{1F44B}' : "Oh, you're back! \u{1F44B}";
+          var bubble = document.createElement('div');
+          bubble.className = 'avatar-say';
+          bubble.setAttribute('aria-hidden', 'true');
+          bubble.textContent = line;
+          wrap.appendChild(bubble);
+          var hello = window.__tunaHello = { line: line, at: 0, secs: Math.min(5.5, 2.5 + 0.06 * line.length), timer: 0 };
+          function show() {                          // not to a background tab: wait until it's looked at
+            if (document.hidden) return;
+            document.removeEventListener('visibilitychange', show);
+            hello.at = performance.now() / 1000;
+            void bubble.offsetWidth;                 // so it pops in
+            bubble.classList.add('on');
+            hello.timer = setTimeout(function () { bubble.classList.remove('on'); }, hello.secs * 1000);
+            document.dispatchEvent(new Event('tuna-hello'));
+          }
+          if (document.hidden) document.addEventListener('visibilitychange', show); else show();
+        })();
+      </script>
     </header>
 
     <!-- ===================== Quote + Sisyphus ===================== -->
@@ -290,7 +321,8 @@
     // With "reduce motion" on (OS setting) he runs in a gentle mode: the head holds still, only the face moves
     // (eyes, lids, mouth, blush), and the stars, twinkles, "z z z" and "!" fade in place instead of moving.
     // If WebGL or the CDN is unavailable, the still image in #tuan-avatar (img/avatar-still.png) simply stays.
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+    // (three.module.min.js and its three.core.min.js are preloaded in <head>, as are the two face images)
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.min.js';
 
     async function init() {
       // ---- Camera framing: the circle shows portrait pixels x 0..768, y 32..800 (as the photo crop does).
@@ -325,15 +357,28 @@
       // Sum of Gaussian bumps: centres (portrait px) and displacements, sigma 42 px.
       const SHAPE = { s: 42, c: [[509.5,281.9],[515.5,304.2],[518.3,331.4],[518,357.4],[516,384.7],[511.8,413.8],[504.7,444.6],[494.4,469.9],[481.6,488.5],[464.6,504.9],[449.9,516.2],[433.9,526.3],[415.1,534.2],[390.6,537.1],[366.4,535.5],[347.4,528.5],[331.3,519.2],[316.3,508.5],[299.1,492.8],[285.8,474.4],[274.2,449.7],[265,419.1],[258.1,390.4],[253.6,363.6],[250,337.9],[250,311],[254.2,288.4],[384.5,323.4],[385,340.3],[385.1,354.2],[385.5,366.8],[385.7,380.3],[386.2,396.3],[386.6,408.2],[387.3,420],[357.4,417.7],[416.9,417],[349.3,405.2],[424.4,404],[353.5,411],[420.7,410],[343.6,457],[431.9,455.4],[388.3,446.6],[388.8,475.8],[388.7,459.1],[388.6,458.8],[375.2,444],[401.3,443.5],[375.8,474.7],[402,474.3],[354.2,451.7],[421.8,450.6],[355.2,465.6],[421.7,464.4],[269.5,299.7],[280.5,288.1],[298.3,281.6],[322.7,281.5],[352,284.5],[413.5,282.6],[442.8,277.7],[467.2,276.3],[485.4,282.2],[497,294],[292.6,395.4],[480.4,391.4],[309.9,411],[464.2,408],[286.7,420.4],[488.6,416.3],[272.7,413.1],[502.8,408.3],[316.5,319.6],[320.2,337.8],[306.2,321.2],[310.2,337.4],[327,320.9],[329.9,337.1],[452.7,317.4],[450.1,336.4],[462.8,318.7],[459.7,335.5],[442,319],[440.3,336],[294.1,329.7],[348.3,335.4],[421.8,334.9],[475.6,327],[320.1,327.6],[450,326.1],[230,170],[550,170],[389,640],[300,680],[480,680],[150,420],[630,420]],
         w: [[2.123,-22.897],[6.523,-2.396],[14.393,4.369],[-0.05,4.716],[6.886,-3.002],[56.78,15.623],[10.401,13.008],[-6.218,-0.713],[-1.715,-2.619],[3.689,2.045],[-1.767,9.548],[-1.854,1.449],[-0.973,-8.48],[1.214,19.976],[-6.172,-9.704],[1.518,0.757],[-0.156,10.006],[-6.618,0.705],[-1.182,-5.936],[2.43,2.016],[-15.34,6.041],[-74.654,10.275],[-8.411,-1.072],[-6.889,-1.017],[-5.754,-5.78],[-2.932,-6.494],[15.826,-15.864],[-1.385,-2.759],[-1.12,-1.079],[5.817,6.082],[-5.822,-0.368],[-0.125,-2.929],[1.795,8.255],[7.827,20.741],[1.916,-13.336],[3.702,-12.798],[-0.963,-17.7],[5.96,-9.183],[-5.309,-8.274],[-12.432,6.414],[-0.569,8.556],[4.831,20.4],[17.92,22.684],[-2.47,5.13],[9.581,5.654],[-3.208,-41.275],[0.565,13.048],[5.407,12.884],[-12.134,19.072],[9.906,0.068],[-13.048,-2.816],[-5.589,-16.751],[4.318,-15.446],[-7.678,7.046],[-6.632,3.502],[-18.543,15.747],[-10.192,7.782],[1.998,-15.794],[4.676,9.928],[4.731,2.919],[-1.091,7.528],[-5.185,1.46],[8.678,-12.161],[2.125,13.906],[-1.141,24.461],[-14.688,7.034],[21.234,14.497],[-15.197,10.968],[2.941,8.193],[30.973,-19.408],[-16.019,-23.682],[73.766,-3.922],[-64.879,-9.738],[-18.631,-7.995],[-14.786,-8.734],[20.216,-13.49],[-2.732,-30.461],[-23.311,-15.796],[2.207,0.472],[14.197,9.954],[11.316,10.037],[-5.772,23.646],[15.903,9.291],[21.667,-1.267],[0.361,6.084],[31.915,30.87],[16.968,4.198],[-16.179,-11.186],[-41.758,-39.785],[6.435,39.469],[-18.2,-25.688],[-0.079,0.209],[-0.12,0.228],[0.225,-0.456],[-0.01,0.027],[-0.011,0.023],[1.168,-0.067],[-0.647,-0.261]] };
-      const shapeAt = (u, v) => {
-        const k = -0.5 / (SHAPE.s * SHAPE.s);
-        let dx = 0, dy = 0;
-        for (let i = 0; i < SHAPE.c.length; i++) {
-          const e = Math.exp(((u - SHAPE.c[i][0]) ** 2 + (v - SHAPE.c[i][1]) ** 2) * k);
-          dx += e * SHAPE.w[i][0]; dy += e * SHAPE.w[i][1];
-        }
-        return [dx, dy];
-      };
+      // Each bump is a column factor times a row factor; the mesh is a grid, so each factor is worked out once.
+      const shapeAt = (() => {
+        const k = -0.5 / (SHAPE.s * SHAPE.s), n = SHAPE.c.length, cols = new Map(), rows = new Map();
+        const factors = (x, axis, cache) => {
+          let f = cache.get(x);
+          if (!f) {
+            f = new Float64Array(n);
+            for (let i = 0; i < n; i++) f[i] = Math.exp((x - SHAPE.c[i][axis]) ** 2 * k);
+            cache.set(x, f);
+          }
+          return f;
+        };
+        return (u, v) => {
+          const fu = factors(u, 0, cols), fv = factors(v, 1, rows);
+          let dx = 0, dy = 0;
+          for (let i = 0; i < n; i++) {
+            const e = fu[i] * fv[i];
+            dx += e * SHAPE.w[i][0]; dy += e * SHAPE.w[i][1];
+          }
+          return [dx, dy];
+        };
+      })();
 
       const [headImg, neckImg] = await Promise.all([loadImage(HEAD.src), loadImage(NECK.src)]);
 
@@ -360,6 +405,15 @@
         t.needsUpdate = true;
         return t;
       };
+
+      // Start compiling the three shaders now: the GPU does it while the geometry below is worked out
+      // (same shaders and settings as the real materials, so the first frame reuses these programs).
+      const warm = new THREE.Scene(), warmGeo = new THREE.BufferGeometry();
+      warmGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(9), 3));
+      for (const [vertexShader, fragmentShader] of [[HEAD_VERT, HEAD_FRAG(EYES)], [PROJECTED_VERT, NECK_FRAG], [TEE_VERT, TEE_FRAG]]) {
+        warm.add(new THREE.Mesh(warmGeo, new THREE.ShaderMaterial({ vertexShader, fragmentShader, transparent: true })));
+      }
+      renderer.compile(warm, camera);                         // starts the compile; nothing waits for it here
 
       // ---------------- Head: inflate the head silhouette, then sculpt the face on top ----------------
       const headA = alphaOf(headImg);
@@ -393,21 +447,22 @@
       }
       const headDist = edt(headExt, hw, hh);
       let headZ = new Float32Array(hw * hh);
+      const relief = faceRelief(HEAD);
       for (let y = 0; y < hh; y++) for (let x = 0; x < hw; x++) {
         const i = y * hw + x, u = HEAD.x0 + x, v = HEAD.y0 + y;
         // The lower face is a little flatter, so the chin stays round (not pointed) when the head turns, and
         // its sides rise more steeply from the outline (higher p), so the jaw stays round (not a V) in a turn.
-        let z = profile(headDist[i], 150, 2.4 + 2.0 * smoothstep(400, 500, v)) * (1 - 0.30 * smoothstep(455, 545, v));
+        let z = headDist[i] > 0 ? profile(headDist[i], 150, 2.4 + 2.0 * smoothstep(400, 500, v)) * (1 - 0.30 * smoothstep(455, 545, v)) : 0;
         // Ears sit back at the sides of the head.
         const ear = Math.max(clamp01((262 - u) / 10), clamp01((u - 512) / 10)) * smoothstep(310, 326, v) * (1 - smoothstep(428, 446, v));
         z *= 1 - 0.6 * ear;
-        headZ[i] = z + faceRelief(u, v);
+        headZ[i] = z + relief[i];
       }
       headZ = blur(blur(headZ, hw, hh, 3), hw, hh, 2);
       // The glasses are part of the portrait: keep the area they cover close to one gently curved plane,
       // so the frames stay straight when the head turns.
       const zBridge = headZ[(330 - HEAD.y0) * hw + (385 - HEAD.x0)];
-      for (let y = 0; y < hh; y++) for (let x = 0; x < hw; x++) {
+      for (let y = 300 - HEAD.y0; y <= 380 - HEAD.y0; y++) for (let x = 258 - HEAD.x0; x <= 512 - HEAD.x0; x++) {   // where g > 0
         const i = y * hw + x, u = HEAD.x0 + x, v = HEAD.y0 + y;
         const g = smoothstep(258, 272, u) * (1 - smoothstep(498, 512, u)) * smoothstep(300, 310, v) * (1 - smoothstep(368, 380, v));
         const plane = zBridge - 6 - 0.0022 * (u - 385) ** 2;
@@ -455,7 +510,7 @@
       const outline = [...[...SHOULDER_L].reverse(), ...NECKLINE, ...SHOULDER_R];
       const teeCanvas = document.createElement('canvas');
       teeCanvas.width = TEE.w; teeCanvas.height = TEE.h;
-      const tg = teeCanvas.getContext('2d');
+      const tg = teeCanvas.getContext('2d');   // (a GPU canvas, as the look was approved with: its edges differ a little from a CPU one)
       tg.fillStyle = '#fff';
       tg.beginPath();
       outline.forEach(([u, v], k) => (k ? tg.lineTo(u - TEE.x0, v - TEE.y0) : tg.moveTo(u - TEE.x0, v - TEE.y0)));
@@ -528,7 +583,7 @@
         headPivot.rotation.set(pose.pitch - pose.bPitch, pose.yaw - pose.bYaw, pose.roll, 'YXZ');
         headPivot.scale.set(1 + 0.25 * pose.squash, 1 - 0.5 * pose.squash, 1 + 0.25 * pose.squash);
         neckPivot.position.set(N0.x - B0.x, N0.y - B0.y + lift, N0.z - B0.z);
-        neckPivot.rotation.set(pose.pitch * 0.3 - pose.bPitch, pose.yaw * 0.4 - pose.bYaw, 0, 'YXZ');
+        neckPivot.rotation.set(pose.pitch * 0.3 - pose.bPitch, 0.4 * (pose.yaw - pose.bYaw), 0, 'YXZ');
         U.gaze.value.set(pose.gazeX, pose.gazeY);
         U.poke.value.set(pose.pokeX, pose.pokeY, pose.dent);
         for (const k of ['blink', 'squint', 'blush', 'smile', 'frown', 'jaw']) U[k].value = pose[k];
@@ -546,6 +601,7 @@
       const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
       const damp = (x, target, rate, dt) => x + (target - x) * (1 - Math.exp(-rate * dt));
       // Damped springs for the dent, the recoil and the squash: [value, velocity, stiffness, damping].
+      // (lift in portrait px: the 240 px circle shows 768 of them, so 10 px of lift is about 3 screen px)
       const springs = { dent: [0, 0, 260, 12], yaw: [0, 0, 90, 11], pitch: [0, 0, 90, 11], squash: [0, 0, 300, 13],
         lift: [0, 0, 70, 9], sway: [0, 0, 40, 6] };              // the body: shoulders up/down (px), lean (rad)
       const MOODS = {
@@ -674,9 +730,9 @@
         // Breathing: one rhythm for the chest, the shoulders and the head; slower and deeper when asleep.
         breathPhase += dt * 2 * Math.PI / (4.2 + 1.4 * sleepLevel);
         const breath = Math.sin(breathPhase);                                            // + = breathing in
-        const bob = -0.006 * breath * (1 - sleepLevel) + (mood === 'laugh' ? 0.03 * Math.sin(t * 15) : 0) + (mood === 'annoyed' ? 0.05 : 0);
+        const bob = -0.012 * breath * (1 - sleepLevel) + (mood === 'laugh' ? 0.03 * Math.sin(t * 15) : 0) + (mood === 'annoyed' ? 0.05 : 0);
         // asleep: the head sinks forward and tilts a little, rising and falling with slow breaths
-        const doze = sleepLevel * (0.17 - 0.014 * breath);   // + = forward
+        const doze = sleepLevel * (0.17 - 0.02 * breath);   // + = forward
         live.gazeX *= 1 - sleepLevel; live.gazeY *= 1 - sleepLevel;
 
         // dizzy: the head goes round in circles and the eyes roll the other way
@@ -685,13 +741,15 @@
         const blissPitch = -0.07 * be, blissRoll = be * blissSide * (0.09 + 0.03 * Math.sin(2 * Math.PI * 0.6 * bk));
         const startle = startleFrom >= 0 && t - startleFrom < 0.6 ? 0.04 * Math.sin((t - startleFrom) * 55) * Math.exp(-(t - startleFrom) * 6) : 0;
         const hm = headMotion;
-        // Body: turns a third of the way with the head and leans a little towards what he looks at, shifts its
-        // weight now and then, slumps when he dozes off, tenses up when annoyed and bounces when he laughs.
-        body.yaw = damp(body.yaw, 0.3 * live.yaw, 3, dt);
-        body.lean = damp(body.lean, -0.08 * live.yaw, 2.5, dt);
+        // Body: turns part of the way with the head and leans towards what he looks at, sways as he shifts his
+        // weight, slumps when he dozes off, tenses up when annoyed and bounces when he laughs.
+        body.yaw = damp(body.yaw, 0.4 * live.yaw, 3, dt);
+        body.lean = damp(body.lean, -0.15 * live.yaw, 2.5, dt);
         body.tense = damp(body.tense, mood === 'annoyed' ? 1 : 0, 6, dt);
         body.bounce = damp(body.bounce, mood === 'laugh' ? 1 : 0, 8, dt);
-        const weight = 0.011 * Math.sin(t * 0.57) * (1 - sleepLevel);
+        const awake = 1 - sleepLevel;
+        const weight = (0.02 * Math.sin(t * 0.57) + 0.007 * Math.sin(t * 1.31 + 1)) * awake;   // slow side-to-side sway
+        const turn = 0.03 * Math.sin(t * 0.43 + 2) * awake;                                       // and a slow turn
         Object.assign(pose, {
           yaw: hm * (live.yaw + springs.yaw[0] + shake + startle + 0.16 * de * Math.sin(w * dk)),
           pitch: hm * (live.pitch + springs.pitch[0] + bob + doze + 0.09 * de * Math.cos(w * dk) + blissPitch),
@@ -702,11 +760,11 @@
           blink: live.blink,
           squint: live.squint, blush: live.blush, smile: live.smile, frown: live.frown, jaw: live.jaw,
           dent: hm * springs.dent[0],
-          bYaw: hm * (body.yaw + 0.25 * springs.yaw[0] + 0.3 * shake + 0.05 * de * Math.sin(w * dk)),
-          bPitch: hm * (0.035 * sleepLevel - 0.035 * be + 0.12 * springs.pitch[0]),          // + = forward
-          bRoll: hm * (body.lean + weight + 0.014 * sleepLevel + springs.sway[0] + 0.035 * de * Math.sin(w * dk + 0.3) + 0.25 * blissRoll),
-          bY: hm * (springs.lift[0] + 3.5 * body.tense - 7 * sleepLevel + body.bounce * 2.4 * (1 + Math.sin(t * 15))),
-          breath: hm * (0.013 + 0.008 * sleepLevel) * breath,
+          bYaw: hm * (body.yaw + turn + 0.25 * springs.yaw[0] + 0.3 * shake + 0.05 * de * Math.sin(w * dk)),
+          bPitch: hm * (0.05 * sleepLevel - 0.045 * be + 0.15 * springs.pitch[0]),          // + = forward
+          bRoll: hm * (body.lean + weight + 0.02 * sleepLevel + springs.sway[0] + 0.035 * de * Math.sin(w * dk + 0.3) + 0.25 * blissRoll),
+          bY: hm * (springs.lift[0] + 7 * body.tense - 16 * sleepLevel + body.bounce * 5 * (1 + Math.sin(t * 15))),
+          breath: hm * (0.026 + 0.012 * sleepLevel) * breath,
         });
         drawStars(t, de);
       }
@@ -722,8 +780,8 @@
         springs.yaw[1] -= clamp((u - 387) / 120, -1, 1) * 2.2;     // recoil away from the finger
         springs.pitch[1] -= clamp((v - 400) / 160, -1, 1) * 1.6;
         springs.squash[1] += 2.2;
-        springs.lift[1] -= 45;                                     // the shoulders flinch
-        springs.sway[1] += clamp((u - 387) / 120, -1, 1) * 0.16;   // and lean away from the finger
+        springs.lift[1] -= 150;                                    // the shoulders flinch
+        springs.sway[1] += clamp((u - 387) / 120, -1, 1) * 0.26;   // and lean away from the finger
         squeezeUntil = t + 0.22;
         if (pokes.length >= 6) { mood = 'annoyed'; moodUntil = t + 2.4; shakeFrom = t; pokes = []; if (!wasAsleep) say('annoyed', false); }
         else {
@@ -744,7 +802,7 @@
           startleFrom = t;
           springs.pitch[1] -= 7.5;            // head jerks up and back
           springs.squash[1] -= 4.6;           // shoots up tall
-          springs.lift[1] += 110;             // shoulders jump
+          springs.lift[1] += 320;             // shoulders jump
           springs.yaw[1] += (Math.random() < 0.5 ? -1 : 1) * 1.2;
           live.blink = 0; sleepLevel = 0.35;  // eyes snap open, head comes up fast
           mood = 'startled'; moodUntil = t + 0.75; afterMood = ['smile', 1.2];   // "oh!" ... "hi :)"
@@ -771,7 +829,6 @@
       host.parentElement.appendChild(zzz);
       const zStyle = document.createElement('style');
       zStyle.textContent = `
-        .hero-avatar-wrap { position: relative; }
         .avatar-zzz { position: absolute; top: 4px; right: 2px; width: 48px; height: 64px; pointer-events: none;
           color: var(--text-muted); font-weight: 600; opacity: 0; transition: opacity 0.8s ease; }
         .avatar-zzz.on { opacity: 1; }
@@ -845,10 +902,8 @@
       // Reactions to what the visitor does are said right away; lines he says on his own (hello, the time of
       // day, the quote, idle chatter) wait in a queue, GAP s apart. No line is said twice in a visit: a used-up
       // group just goes quiet.
+      // (the greeting on arrival is said by the page itself, see the script after #tuan-avatar in index.html)
       const LINES = {
-        hello: ["Hi, I'm Tuan! You can call me Tuna \u{1F41F}"],
-        back: ["Oh, you're back! \u{1F44B}"],
-        xinchao: ['Xin ch\u00e0o! \u{1F44B}'],
         morning: ['Good morning! \u2600\uFE0F'],
         late: ['Up late too? \u{1F319}'],
         poke: ['Hey!', 'Boop! \u{1F449}', 'Hi there!'],
@@ -876,10 +931,13 @@
       const LOOK = 2.0;                                         // seconds he looks at the visitor when he says something
       let lookUntil = 0;
       const queue = [];                                         // [group, expires at]
-      const bubble = document.createElement('div');
-      bubble.className = 'avatar-say';
-      bubble.setAttribute('aria-hidden', 'true');
-      host.parentElement.appendChild(bubble);
+      let bubble = host.parentElement.querySelector('.avatar-say');   // made by the page, for the greeting
+      if (!bubble) {
+        bubble = document.createElement('div');
+        bubble.className = 'avatar-say';
+        bubble.setAttribute('aria-hidden', 'true');
+        host.parentElement.appendChild(bubble);
+      }
       function say(group, perk = true) {                      // perk: a little lift (not for reactions: they move him already)
         const left = LINES[group].filter((l) => !said.has(l));
         if (!left.length) return;
@@ -890,7 +948,7 @@
         lastSaid = t; bubbleUntil = t + secs;
         talkUntil = t + Math.min(1.5, 0.06 * line.length);
         lookUntil = asleep ? 0 : t + LOOK;                      // eyes on the visitor, then back to the cursor
-        if (perk && !asleep) springs.lift[1] += 30;             // and perks up a little
+        if (perk && !asleep) springs.lift[1] += 100;            // and perks up a little
         bubble.textContent = line;
         bubble.classList.remove('on'); void bubble.offsetWidth; bubble.classList.add('on');
         clearTimeout(bubbleTimer); bubbleTimer = setTimeout(() => bubble.classList.remove('on'), secs * 1000);
@@ -911,20 +969,6 @@
       let hoverTimer = 0;
       document.addEventListener('pointerdown', () => clearTimeout(hoverTimer), { passive: true });   // clicked, not hovering
       document.addEventListener('quote-typed', () => sayLater('quote'));
-      zStyle.textContent += `
-        .avatar-say { position: absolute; left: 36%; top: 12%; z-index: 3; width: max-content; max-width: 220px;
-          padding: 0.42rem 0.72rem; border-radius: 14px; background: var(--bg); color: var(--text);
-          border: 1px solid var(--border); box-shadow: 0 4px 14px rgba(20, 38, 79, 0.16);
-          font-size: 0.84rem; line-height: 1.35; font-weight: 500; text-align: center; text-wrap: balance; pointer-events: none;
-          opacity: 0; transform: translate(-50%, calc(-100% + 6px)) scale(0.9); transform-origin: 50% 100%;
-          transition: opacity 0.18s ease, transform 0.28s cubic-bezier(0.3, 1.6, 0.5, 1); }
-        .avatar-say.on { opacity: 1; transform: translate(-50%, -100%) scale(1); }
-        .avatar-say::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 10px; height: 10px;
-          background: var(--bg); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
-          transform: translateX(-50%) rotate(45deg); }
-        @media (prefers-reduced-motion: reduce) {
-          .avatar-say, .avatar-say.on { transform: translate(-50%, -100%); transition: opacity 0.2s ease; }
-        }`;
       // Stars on a flat ellipse above the head; they follow the head's tilt and are fainter/smaller behind it.
       function drawStars(t, e) {
         if (e <= 0) {
@@ -962,7 +1006,7 @@
           dizzyStart = -1; blissStart = t; blissSide = Math.random() < 0.5 ? -1 : 1;
           mood = 'bliss'; moodUntil = t + BLISS; afterMood = ['cozy', 2.2];
           springs.squash[1] -= 1.2;                                  // a little stretch, like a contented sigh
-          springs.lift[1] += 55;                                     // a deep breath in, then he sinks back
+          springs.lift[1] += 170;                                    // a deep breath in, then he sinks back
           fx.style.fontSize = (host.clientWidth * 0.1).toFixed(1) + 'px';
           twinkles.classList.add('on');
           clearTimeout(twinkleTimer); twinkleTimer = setTimeout(() => twinkles.classList.remove('on'), (BLISS + 0.3) * 1000);
@@ -972,7 +1016,7 @@
           dizzyStart = t; mood = 'dizzy'; moodUntil = t + DIZZY; afterMood = ['dazzled', 0.9];
           squeezeUntil = t + 0.25;
           springs.squash[1] += 2.4;
-          springs.lift[1] -= 50;                                     // recoils from the glare
+          springs.lift[1] -= 160;                                    // recoils from the glare
           springs.yaw[1] += (Math.random() < 0.5 ? -1 : 1) * 2.2;
         }
       }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -1046,9 +1090,22 @@
       reduceMotion.addEventListener('change', schedule);
       schedule();
 
-      let visited = false;
-      try { visited = localStorage.getItem('tuna-visited') === '1'; localStorage.setItem('tuna-visited', '1'); } catch (e) {}
-      setTimeout(() => say(!visited ? 'hello' : Math.random() < 0.25 ? 'xinchao' : 'back'), 1200);
+      // The greeting was said by the page as it opened. If it's still up, he joins in: looks at the visitor,
+      // perks up with a little nod and mouths the rest of it.
+      function joinHello() {
+        const h = window.__tunaHello, t = now();
+        if (!h || !h.at || said.has(h.line)) return;
+        said.add(h.line);
+        lastSaid = h.at; bubbleUntil = h.at + h.secs; bubbleTimer = h.timer;
+        if (t < bubbleUntil - 0.8) {
+          talkUntil = t + Math.min(1.5, bubbleUntil - 0.8 - t);
+          lookUntil = t + LOOK;
+          springs.lift[1] += 100; springs.pitch[1] += 1.4;
+        }
+        schedule();
+      }
+      joinHello();
+      document.addEventListener('tuna-hello', joinHello);   // the page waited for its tab to be seen
       const hour = new Date().getHours();
       if (hour >= 5 && hour < 11) sayLater('morning');
       else if (hour >= 23 || hour < 4) sayLater('late');
@@ -1069,7 +1126,7 @@
         say: (group) => say(group),
         speech: () => ({ text: bubble.textContent, on: bubble.classList.contains('on'), queue: queue.map((q) => q[0]), said: [...said] }),
         state: () => ({ asleep, sleepLevel, mood, hoverKind, blink: pose.blink, pitch: pose.pitch, yaw: pose.yaw, roll: pose.roll, gazeX: pose.gazeX, smile: pose.smile, squint: pose.squint,
-          bYaw: pose.bYaw, bPitch: pose.bPitch, bRoll: pose.bRoll, bY: pose.bY, breath: pose.breath }),
+          bYaw: pose.bYaw, bPitch: pose.bPitch, bRoll: pose.bRoll, bY: pose.bY, breath: pose.breath, jaw: pose.jaw }),
       };
 
       // ---------------- Geometry helpers ----------------
@@ -1298,12 +1355,9 @@
 
     // ---------------- Small helpers ----------------
     function loadImage(src) {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error('could not load ' + src));
-        img.src = src;
-      });
+      const img = new Image();
+      img.src = src;
+      return img.decode().then(() => img, () => { throw new Error('could not load ' + src); });   // decoded off the main thread
     }
     function alphaOf(img) {
       const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
@@ -1312,7 +1366,7 @@
       else {
         const c = document.createElement('canvas');
         c.width = w; c.height = h;
-        const g = c.getContext('2d');
+        const g = c.getContext('2d', { willReadFrequently: true });   // a CPU canvas: reading pixels back is quick
         g.drawImage(img, 0, 0);
         data = g.getImageData(0, 0, w, h).data;
       }
@@ -1324,20 +1378,36 @@
     function smoothstep(e0, e1, x) { const t = clamp01((x - e0) / (e1 - e0)); return t * t * (3 - 2 * t); }
     // Rounded profile: 0 at the outline, rising to dm at distance dm inside it (flatter front for larger p).
     function profile(d, dm, p) { const t = Math.min(d, dm) / dm; return dm * Math.pow(1 - Math.pow(1 - t, p), 1 / p); }
-    // Face shape on top of the inflated silhouette, in portrait pixels (measured on avatar.png).
-    function faceRelief(u, v) {
-      const g = (cx, cy, sx, sy) => Math.exp(-(((u - cx) / sx) ** 2) - (((v - cy) / sy) ** 2));
-      const sigma = 7 + 12 * smoothstep(330, 405, v);
-      const noseH = (5 + 25 * smoothstep(328, 400, v)) * (1 - smoothstep(410, 428, v)) * smoothstep(305, 330, v);
-      let z = noseH * Math.exp(-(((u - 387) / sigma) ** 2));
-      z += 7 * g(361, 408, 9, 7) + 7 * g(413, 408, 9, 7);                         // nose wings
-      z -= 7 * g(320, 328, 24, 12) + 7 * g(448, 328, 24, 12);                     // eye sockets
-      z += 6 * g(318, 296, 30, 9) + 6 * g(450, 294, 30, 9);                       // brow ridge
-      z += 7 * g(302, 394, 28, 26) + 7 * g(470, 394, 28, 26);                     // cheekbones
-      z += 9 * g(387, 451, 27, 7) + 8 * g(387, 468, 23, 8) - 3 * g(387, 458, 32, 2); // lips
-      z -= 4 * g(388, 485, 20, 5);                                                // under the lower lip
-      z += 5 * g(391, 511, 32, 14);                                               // chin (rounder than the portrait's)
-      z -= 2 * g(387, 436, 6, 6);                                                 // philtrum
+    // Face shape on top of the inflated silhouette, in portrait pixels (measured on avatar.png), for every pixel
+    // of a box. Bumps [height, centre x, centre y, spread x, spread y]; each is a column factor times a row factor.
+    const RELIEF = [
+      [7, 361, 408, 9, 7], [7, 413, 408, 9, 7],                                   // nose wings
+      [-7, 320, 328, 24, 12], [-7, 448, 328, 24, 12],                             // eye sockets
+      [6, 318, 296, 30, 9], [6, 450, 294, 30, 9],                                 // brow ridge
+      [7, 302, 394, 28, 26], [7, 470, 394, 28, 26],                               // cheekbones
+      [9, 387, 451, 27, 7], [8, 387, 468, 23, 8], [-3, 387, 458, 32, 2],          // lips
+      [-4, 388, 485, 20, 5],                                                      // under the lower lip
+      [5, 391, 511, 32, 14],                                                      // chin (rounder than the portrait's)
+      [-2, 387, 436, 6, 6],                                                       // philtrum
+    ];
+    function faceRelief({ x0, y0, w, h }) {
+      const z = new Float64Array(w * h), fx = new Float64Array(w);
+      for (const [k, cx, cy, sx, sy] of RELIEF) {
+        for (let x = 0; x < w; x++) fx[x] = Math.exp(-(((x0 + x - cx) / sx) ** 2));
+        for (let y = 0; y < h; y++) {
+          const fy = k * Math.exp(-(((y0 + y - cy) / sy) ** 2));
+          if (fy === 0) continue;
+          for (let x = 0, i = y * w; x < w; x++, i++) z[i] += fy * fx[x];
+        }
+      }
+      // the nose ridge, wider towards the tip
+      for (let y = 0; y < h; y++) {
+        const v = y0 + y;
+        const noseH = (5 + 25 * smoothstep(328, 400, v)) * (1 - smoothstep(410, 428, v)) * smoothstep(305, 330, v);
+        if (noseH === 0) continue;
+        const sigma = 7 + 12 * smoothstep(330, 405, v);
+        for (let x = 0, i = y * w; x < w; x++, i++) z[i] += noseH * Math.exp(-(((x0 + x - 387) / sigma) ** 2));
+      }
       return z;
     }
     // Euclidean distance (px) from each inside pixel to the nearest outside pixel (Felzenszwalb & Huttenlocher).
