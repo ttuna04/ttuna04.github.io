@@ -24,8 +24,8 @@
   <!-- the 3D avatar's parts download alongside the page -->
   <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.min.js">
   <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.core.min.js">
-  <link rel="preload" as="image" href="img/avatar-head.png">
-  <link rel="preload" as="image" href="img/avatar-neck.png">
+  <link rel="preload" as="image" href="img/avatar-head.png?v=2">
+  <link rel="preload" as="image" href="img/avatar-neck.png?v=2">
 </head>
 <body>
   <nav class="nav">
@@ -66,7 +66,7 @@
       </div>
       <div class="hero-avatar-wrap">
         <div class="hero-avatar" id="tuan-avatar">
-          <img src="img/avatar-still.png" alt="Portrait of Tuan Truong" width="240" height="240">
+          <img src="img/avatar-still.png?v=2" alt="Portrait of Tuan Truong" width="240" height="240">
         </div>
       </div>
       <script>
@@ -335,8 +335,8 @@
         return [(u - CX) * PX * s, -(v - CY) * PX * s, z * PX];
       };
 
-      const HEAD = { src: 'img/avatar-head.png', x0: 192, y0: 72, w: 384, h: 488 };
-      const NECK = { src: 'img/avatar-neck.png', x0: 288, y0: 432, w: 224, h: 240 };
+      const HEAD = { src: 'img/avatar-head.png?v=2', x0: 192, y0: 72, w: 384, h: 488 };
+      const NECK = { src: 'img/avatar-neck.png?v=2', x0: 288, y0: 432, w: 224, h: 240 };
       const TEE = { x0: 0, y0: 500, w: 768, h: 345 };
       // Crew neckline and shoulders of the tee, in portrait pixels.
       const NECKLINE = [[299, 551], [320, 571], [345, 587], [370, 596], [395, 599], [420, 595], [446, 583], [470, 566], [488, 548], [497, 533]];
