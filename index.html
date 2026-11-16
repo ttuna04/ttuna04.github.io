@@ -19,7 +19,7 @@
     "alumniOf": { "@type": "Organization", "name": "University of British Columbia" }
   }
   </script>
-  <link rel="stylesheet" href="site.css?v=3">
+  <link rel="stylesheet" href="site.css?v=4">
   <script src="site.js?v=1"></script>
   <!-- the 3D avatar's parts download alongside the page -->
   <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.min.js">
@@ -922,6 +922,11 @@
         cv: ['The long version of me'],
         email: ['Say hi anytime \u2709\uFE0F'],
         advisor: ['My advisor \u{1F64F}'],
+        experience: ["Where I learned how much I don't know \u{1F605}", 'Spoiler: still learning \u{1F4DA}'],
+        honors: ['Mostly luck and great mentors \u{1F340}', "Don't let it go to my head \u{1F648}"],
+        // the Camus quote (hovered); in this order, so a repeat of the line said after it typed itself moves on
+        quoteHover: ['One must imagine Sisyphus happy.', 'One must imagine the PhD student happy \u{1FAA8}',
+          'In Singapore, summer really is invincible ☀️', 'Absurd? Sure. Keep pushing the rock \u{1FAA8}'],
         lightsOff: ['Lights off, please? \u{1F319}'],
         keepDark: ['Please keep it dark \u{1F97A}'],
       };
@@ -938,10 +943,10 @@
         bubble.setAttribute('aria-hidden', 'true');
         host.parentElement.appendChild(bubble);
       }
-      function say(group, perk = true) {                      // perk: a little lift (not for reactions: they move him already)
+      function say(group, perk = true, inOrder = false) {     // perk: a little lift (not for reactions: they move him already)
         const left = LINES[group].filter((l) => !said.has(l));
         if (!left.length) return;
-        const line = left[Math.floor(Math.random() * left.length)], t = now();
+        const line = inOrder ? left[0] : left[Math.floor(Math.random() * left.length)], t = now();
         said.add(line);
         clearTimeout(hoverTimer);                               // a pending hover line would be stale now
         const secs = Math.min(5.5, 2.5 + 0.06 * line.length);
@@ -955,10 +960,13 @@
         schedule();
       }
       const sayLater = (group) => { queue.push([group, now() + 20]); schedule(); };
-      // Links that get a line of their own (said once, after the cursor rests on the link a moment)
+      // Links (and the quote) that get a line of their own, said in order, after the cursor rests on it a moment
       const hoverLine = (el) => {
         if (el.id === 'theme-toggle') return theme === 'dark' ? 'keepDark' : 'lightsOff';
+        if (el.classList.contains('intro-quote')) return 'quoteHover';
         const h = el.getAttribute('href') || '';
+        if (h.includes('experience.html')) return 'experience';
+        if (h.includes('honors.html')) return 'honors';
         if (h.startsWith('mailto:')) return 'email';
         if (h.includes('scholar.google')) return 'scholar';
         if (h.endsWith('.pdf')) return 'cv';
@@ -1021,15 +1029,17 @@
         }
       }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-      // Links: he looks at the one under the cursor and smiles.
+      // Links and the quote: he looks at the one under the cursor and smiles.
       document.addEventListener('pointerover', (e) => {
-        const el = e.target.closest && e.target.closest('a, button');
-        if (!el || host.contains(el)) return;
+        const el = e.target.closest && e.target.closest('a, button, .intro-quote');
+        if (!el || host.contains(el) || el === hoverEl) return;
         hoverEl = el;
         hoverKind = 'interest';
         clearTimeout(hoverTimer);
         const key = e.pointerType === 'mouse' ? hoverLine(el) : null;
-        if (key) hoverTimer = setTimeout(() => { const k = hoverEl === el && hoverLine(el); if (k) say(k); }, 350);
+        // the quote is a big block the cursor often just crosses: it waits for a longer rest
+        const rest = el.classList.contains('intro-quote') ? 700 : 350;
+        if (key) hoverTimer = setTimeout(() => { const k = hoverEl === el && hoverLine(el); if (k) say(k, true, true); }, rest);
         schedule();
       }, { passive: true });
       document.addEventListener('pointerout', (e) => {

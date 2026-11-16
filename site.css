@@ -72,6 +72,22 @@ a:hover { text-decoration: underline; }
 }
 .theme-toggle:hover { color: var(--accent); background: var(--accent-soft); }
 
+/* ============ Hover: the links the avatar talks about (and the quote) light up and lift a little ============ */
+.nav-links a, .contact-line a {
+  display: inline-block;
+  padding: 0.1rem 0.4rem; margin: -0.1rem -0.4rem;   /* room for the pill, without moving anything */
+  border-radius: 6px;
+  transition: transform 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+}
+@media (hover: hover) {   /* not on touch screens, where a tap would leave it stuck */
+  .nav-links a:hover, .contact-line a:hover { background: var(--accent-soft); color: var(--accent); text-decoration: none; }
+  .intro-quote:hover { background: var(--accent-soft); border-left-color: var(--accent); color: var(--text); }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .nav-links a:hover, .contact-line a:hover { transform: translateY(-2px); }
+  .intro-quote:hover { transform: translateY(-3px); }
+}
+
 /* ============ Layout ============ */
 .container {
   max-width: 780px;
@@ -164,12 +180,13 @@ p, .pub-title { text-wrap: pretty; }   /* no lone last words */
 
 /* ============ Intro quote ============ */
 .intro-quote {
-  max-width: 34rem;
+  max-width: 35rem;                               /* 34rem of text + the padding on the right */
   margin: 2.75rem 0 0;
   text-align: left;
   border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
-  border-radius: 0;
-  padding-left: 1.1rem;
+  border-radius: 0 10px 10px 0;                   /* the hover tint's corners */
+  padding: 0.45rem 1rem 0.45rem 1.1rem;
+  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   font-style: italic;
   font-size: 1.02rem;
   line-height: 1.6;
