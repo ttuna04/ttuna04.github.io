@@ -900,8 +900,8 @@
 
       // ---------------- Speech: short lines in a bubble above his head ----------------
       // Reactions to what the visitor does are said right away; lines he says on his own (hello, the time of
-      // day, the quote, idle chatter) wait in a queue, GAP s apart. No line is said twice in a visit: a used-up
-      // group just goes quiet.
+      // day, the quote, idle chatter) wait in a queue, GAP s apart. No line is said twice in a visit (a used-up
+      // group just goes quiet), except the hover lines: they go round in a cycle.
       // (the greeting on arrival is said by the page itself, see the script after #tuan-avatar in index.html)
       const LINES = {
         morning: ['Good morning! \u2600\uFE0F'],
@@ -924,7 +924,7 @@
         advisor: ['My advisor \u{1F64F}'],
         experience: ["Where I learned how much I don't know \u{1F605}", 'Spoiler: still learning \u{1F4DA}'],
         honors: ['Mostly luck and great mentors \u{1F340}', "Don't let it go to my head \u{1F648}"],
-        // the Camus quote (hovered); in this order, so a repeat of the line said after it typed itself moves on
+        // the Camus quote (hovered); the first time round, a line already said after it typed itself is skipped
         quoteHover: ['One must imagine Sisyphus happy.', 'One must imagine the PhD student happy \u{1FAA8}',
           'In Singapore, summer really is invincible ☀️', 'Absurd? Sure. Keep pushing the rock \u{1FAA8}'],
         lightsOff: ['Lights off, please? \u{1F319}'],
@@ -943,10 +943,20 @@
         bubble.setAttribute('aria-hidden', 'true');
         host.parentElement.appendChild(bubble);
       }
-      function say(group, perk = true, inOrder = false) {     // perk: a little lift (not for reactions: they move him already)
-        const left = LINES[group].filter((l) => !said.has(l));
-        if (!left.length) return;
-        const line = inOrder ? left[0] : left[Math.floor(Math.random() * left.length)], t = now();
+      const lastInCycle = {};                                   // hover groups: the line said last
+      // perk: a little lift (not for reactions: they move him already). cycle: the lines go round in order
+      // (lines not yet said this visit first), instead of running out.
+      function say(group, perk = true, cycle = false) {
+        const lines = LINES[group], left = lines.filter((l) => !said.has(l)), t = now();
+        let line;
+        if (cycle) {
+          line = left.length ? left[0] : lines[((lastInCycle[group] ?? -1) + 1) % lines.length];
+          if (line === bubble.textContent && t < bubbleUntil) return;   // still saying it
+          lastInCycle[group] = lines.indexOf(line);
+        } else {
+          if (!left.length) return;
+          line = left[Math.floor(Math.random() * left.length)];
+        }
         said.add(line);
         clearTimeout(hoverTimer);                               // a pending hover line would be stale now
         const secs = Math.min(5.5, 2.5 + 0.06 * line.length);
@@ -960,7 +970,7 @@
         schedule();
       }
       const sayLater = (group) => { queue.push([group, now() + 20]); schedule(); };
-      // Links (and the quote) that get a line of their own, said in order, after the cursor rests on it a moment
+      // Links (and the quote) that get lines of their own, said in turn (round and round) after the cursor rests on it
       const hoverLine = (el) => {
         if (el.id === 'theme-toggle') return theme === 'dark' ? 'keepDark' : 'lightsOff';
         if (el.classList.contains('intro-quote')) return 'quoteHover';
